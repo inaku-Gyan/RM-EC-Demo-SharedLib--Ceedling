@@ -1,6 +1,7 @@
 #include "sl_crc.h"
 
-#include <assert.h>
+#include "../../config/internal.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -52,7 +53,7 @@ static uint16_t reflect_bits(uint16_t val, uint8_t width) {
 }
 
 void sl_crc_init(sl_crc_type_t type) {
-    assert(type < SL_CRC_TYPE_COUNT);
+    SL_ASSERT(type < SL_CRC_TYPE_COUNT);
 
     if (initialized[type]) {
         return;
@@ -89,9 +90,9 @@ void sl_crc_init(sl_crc_type_t type) {
 }
 
 uint16_t sl_crc_calculate(sl_crc_type_t type, const uint8_t *data, size_t length) {
-    assert(data != NULL || length == 0);
-    assert(type < SL_CRC_TYPE_COUNT);
-    assert(initialized[type]);
+    SL_ASSERT(data != NULL || length == 0);
+    SL_ASSERT(type < SL_CRC_TYPE_COUNT);
+    SL_ASSERT(initialized[type]);
 
     const struct crc_config *cfg = &configs[type];
     const uint16_t mask = (cfg->width == 8u) ? 0x00FFu : 0xFFFFu;
@@ -127,9 +128,9 @@ uint16_t sl_crc_calculate(sl_crc_type_t type, const uint8_t *data, size_t length
 }
 
 bool sl_crc_verify(sl_crc_type_t type, const uint8_t *data, size_t length) {
-    assert(data != NULL);
-    assert(type < SL_CRC_TYPE_COUNT);
-    assert(initialized[type]);
+    SL_ASSERT(data != NULL);
+    SL_ASSERT(type < SL_CRC_TYPE_COUNT);
+    SL_ASSERT(initialized[type]);
 
     const struct crc_config *cfg = &configs[type];
     const size_t crc_len = cfg->width / 8u;
@@ -149,9 +150,9 @@ bool sl_crc_verify(sl_crc_type_t type, const uint8_t *data, size_t length) {
 }
 
 void sl_crc_append(sl_crc_type_t type, uint8_t *data, size_t length) {
-    assert(data != NULL);
-    assert(type < SL_CRC_TYPE_COUNT);
-    assert(initialized[type]);
+    SL_ASSERT(data != NULL);
+    SL_ASSERT(type < SL_CRC_TYPE_COUNT);
+    SL_ASSERT(initialized[type]);
 
     const struct crc_config *cfg = &configs[type];
     const size_t crc_len = cfg->width / 8u;

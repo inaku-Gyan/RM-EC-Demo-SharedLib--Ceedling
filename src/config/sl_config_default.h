@@ -12,6 +12,23 @@
  * ============================================================================
  */
 
+/* ----- 断言 ------------------------------------------------------------- *
+ *  库内部统一走 SL_ASSERT(expr)。默认转发到 <assert.h> 的 assert()——
+ *  host 单元测试零配置可用，业务方定义 NDEBUG 即可整段擦除。
+ *
+ *  嵌入式现场不愿走 newlib 的 __assert_func / stderr 时，业务可在自己的
+ *  SL_USER_CONFIG 头里整段覆写：
+ *      #define SL_ASSERT(expr) ((expr) ? (void)0 : my_panic(__FILE__, __LINE__))
+ *  release 期希望零开销也可直接：
+ *      #define SL_ASSERT(expr) ((void)0)
+ *  注意覆写后本文件不再 #include <assert.h>。
+ * -------------------------------------------------------------------------- */
+
+#ifndef SL_ASSERT
+    #include <assert.h> // IWYU pragma: keep
+    #define SL_ASSERT(expr) assert(expr)
+#endif
+
 /* ----- 功能开关：0 = 关闭，1 = 启用 -------------------------------------- */
 
 #ifndef SL_USE_FREERTOS
