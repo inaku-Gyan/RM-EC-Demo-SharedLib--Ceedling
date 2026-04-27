@@ -1,0 +1,166 @@
+name: Release
+
+# 仅手动触发：在 Actions UI 的 "Use workflow from" 下拉里选择要发布的 ref（分支或 tag），
+# 工作流从所选 ref 检出代码运行。若选了非 tag 的 ref，必须额外提供 SemVer tag 输入。
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "可选：以 v 开头的 SemVer tag（vX.Y.Z[-pre][+build]）。若所选 ref 已是 tag 可留空"
+        required: false
+        default: ""
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      RELEASE_BRANCH: release
+    steps:
+      # 把所选 ref 完整克隆进 main/，全历史 + 全 tag，方便后面校验 main / 推 tag
+      - name: Checkout 源 ref → main/
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          path: main
+
+      - name: 检查 release 分支是否存在
+        id: release_exists
+        working-directory: main
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads origin "$RELEASE_BRANCH" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # release 分支已存在则用 actions/checkout 克隆进 release/（token 自动写好）；
+      # 不存在则手动 init 一个空仓库，用同样的 token 配 origin
+      - name: Checkout release 分支 → release/
+        if: steps.release_exists.outputs.exists == 'true'
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.RELEASE_BRANCH }}
+          fetch-depth: 1
+          path: release
+
+      - name: 初始化空的 release 工作目录（首次发布）
+        if: steps.release_exists.outputs.exists != 'true'
+        run: |
+          set -euo pipefail
+          mkdir release
+          git -C release init -q -b "$RELEASE_BRANCH"
+          git -C release remote add origin \
+            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+
+      # 1. 校验是否在 main 上
+      - name: 校验所选 ref 在 main 上
+        working-directory: main
+        run: |
+          set -euo pipefail
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
+            echo "::error::提交 $GITHUB_SHA 不在 main 分支上"
+            exit 1
+          fi
+
+      # 2. 选择最终 tag，输出 release_tag 与 create_tag
+      - name: 决定发布 tag
+        id: resolve
+        working-directory: main
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          SHA: ${{ github.sha }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+
+          ref_is_tag=false
+          [[ "$REF_TYPE" == "tag" ]] && ref_is_tag=true
+
+          if [[ -n "$INPUT_TAG" ]]; then
+            release_tag="$INPUT_TAG"
+            create_tag=true
+            if [[ "$ref_is_tag" == "true" ]]; then
+              if [[ "$REF_NAME" != "$INPUT_TAG" ]]; then
+                echo "::error::所选 ref '$REF_NAME' 已经是 tag，与输入 tag '$INPUT_TAG' 冲突；二选一即可"
+                exit 1
+              fi
+              # ref 是同名 tag，已经存在了，不需要新建
+              create_tag=false
+            fi
+          elif [[ "$ref_is_tag" == "true" ]]; then
+            release_tag="$REF_NAME"
+            create_tag=false
+          else
+            echo "::error::所选 ref '$REF_NAME' 不是 tag，必须通过 'tag' 输入指定一个 SemVer tag"
+            exit 1
+          fi
+
+          # 若目标 tag 已存在但指向不同 commit，拒绝重复发布
+          if [[ "$create_tag" == "true" ]] && git show-ref --verify --quiet "refs/tags/$release_tag"; then
+            existing_sha=$(git rev-parse --verify "refs/tags/$release_tag^{commit}")
+            if [[ "$existing_sha" != "$SHA" ]]; then
+              echo "::error::tag '$release_tag' 已存在，且指向 $existing_sha，与目标 commit $SHA 不同"
+              exit 1
+            fi
+            # 已指向相同 commit：跳过创建
+            create_tag=false
+          fi
+
+          {
+            echo "release_tag=$release_tag"
+            echo "create_tag=$create_tag"
+          } >> "$GITHUB_OUTPUT"
+          echo "解析结果：sha=$SHA  release_tag=$release_tag  create_tag=$create_tag"
+
+      # 3. 校验 tag 格式
+      - name: 校验 tag 符合 SemVer
+        env:
+          RELEASE_TAG: ${{ steps.resolve.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          # SemVer：v 开头 + Major.Minor.Patch + 可选 -prerelease + 可选 +build
+          # 参考 https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+          semver='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(\.(0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*))?(\+([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
+          if ! [[ "$RELEASE_TAG" =~ $semver ]]; then
+            echo "::error::tag '$RELEASE_TAG' 不是合法 SemVer，要求形如 v1.2.3 / v1.2.3-rc.1 / v1.2.3+build.5"
+            exit 1
+          fi
+
+      # 4. 在源 commit 上创建并推送 tag（如需）
+      - name: 创建并推送 tag
+        if: steps.resolve.outputs.create_tag == 'true'
+        working-directory: main
+        env:
+          TAG: ${{ steps.resolve.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag -a "$TAG" "${{ github.sha }}" -m "Release $TAG"
+          git push origin "refs/tags/$TAG"
+
+      # 5. 把 main/src/* 平铺到 release/，提交并 push（保留线性历史）
+      - name: 发布 src/ 到 release 分支
+        run: |
+          set -euo pipefail
+
+          # 清空 release/（保留 .git），再把 main/src/* 平铺过来
+          find release -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          shopt -s dotglob
+          cp -r main/src/* release/
+
+          cd release
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo "release 分支已经是该发布内容，跳过 push"
+            exit 0
+          fi
+          git commit -q -m "Release ${{ steps.resolve.outputs.release_tag }} (from commit `${{ github.sha }}`)"
+          git push origin "$RELEASE_BRANCH"
