@@ -292,7 +292,7 @@ CI 在 `all_on` 上跑 `ceedling gcov:all`，把生成的 HTML 报告作为 arti
 
 `main` 通过全部检查 + 合并到 `main` 后，单独的 release workflow 触发：抽取 `src/` 与 `config/`（含 `sl_config_default.h` 与 `internal.h`），重写到 `release` 分支。`release` 分支不跑 fmt/lint/test/coverage（已经是 `main` 验证过的快照）。
 
-## 给 Claude 的工作约束
+## 给 AI Agent 的工作约束
 
 - 修改库代码时**永远不要假设业务方能改任何东西**。需要新行为？通过新配置项实现，并在 `sl_config_default.h` 给默认值。
 - 新增模块的 checklist：
