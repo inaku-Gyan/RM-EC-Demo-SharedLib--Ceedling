@@ -5,10 +5,10 @@
  *  库内部派生的宏。
  *
  *  业务方在编译时通过 -DSL_USER_CONFIG=\"path/to/header.h\" 指定自己的
- *  配置头，对感兴趣的项做 #define；config/internal.h 会先 #include 业务
- *  配置、再 #include 本文件，下方每条 #ifndef 守卫保留业务方覆写。
+ *  配置头，对感兴趣的项做 #define；src/config/internal.h 会先 #include
+ *  业务配置、再 #include 本文件，下方每条 #ifndef 守卫保留业务方覆写。
  *
- *  库代码绝不直接 #include 本文件——必须经由 config/internal.h 间接拿到。
+ *  库代码绝不直接 #include 本文件——必须经由 src/config/internal.h 间接拿到。
  * ============================================================================
  */
 

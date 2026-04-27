@@ -28,7 +28,7 @@ Checks: >
 #                                         不强制 *_s 变体
 
 WarningsAsErrors: '*'
-HeaderFilterRegex: '^(src|config)/.*'
+HeaderFilterRegex: '^src/.*'
 FormatStyle: file
 
 CheckOptions:

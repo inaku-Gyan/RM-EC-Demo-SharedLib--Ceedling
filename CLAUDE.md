@@ -9,31 +9,32 @@ RoboMaster 多个 C 嵌入式项目共用的源码库。仅有 test 目标，不
 1. **库代码在业务仓库中只读**。业务方不能修改本仓库代码，所有差异化必须通过覆写 config 实现。任何"靠业务方改一行库代码就行"的方案都不可接受。
 2. **公共 API 一律 `sl_` 前缀**（shared lib）。函数/类型用 snake_case (`sl_pid_init`, `sl_pid_t`)；宏用 `SL_` 前缀的 UPPER_SNAKE (`SL_USE_FREERTOS`)。文件内 `static` 标识符不需要前缀。
 3. **外部依赖路径由宏配置**，不写死。库代码绝不出现 `#include "FreeRTOS.h"`，必须 `#include SL_INCLUDE_FREERTOS`（路径名由业务 / mixin 覆盖）。每个源文件**自己**用 `#if SL_USE_X` 决定要不要拉 vendor 头——library 不做"一股脑" auto-include。
-4. **不向后兼容默认未定义的宏**。每个 `SL_*` 宏都必须在 [config/sl_config_default.h](config/sl_config_default.h) 有默认值；库代码可以直接 `#if` 使用而不需先做 `#ifndef ... #define ... #endif` 兜底。
-5. **库代码绝不直接 `#include "sl_config_default.h"`**——必须经由 [config/internal.h](config/internal.h) 拿到 `SL_*` 宏。`sl_config_default.h` 只承载用户可调的配置项；派生宏 / sanity check 集中到 `internal.h`。
-6. **业务方覆写通过 `-DSL_USER_CONFIG=\"path/to/header.h\"`**。不用约定 include path、不放 shim 文件——业务在编译命令里给一个宏指向自己的配置头，[config/internal.h](config/internal.h) 在最前面 `#include SL_USER_CONFIG` 拉它。这样我们不必猜业务的 include path 布局。
+4. **不向后兼容默认未定义的宏**。每个 `SL_*` 宏都必须在 [src/config/sl_config_default.h](src/config/sl_config_default.h) 有默认值；库代码可以直接 `#if` 使用而不需先做 `#ifndef ... #define ... #endif` 兜底。
+5. **库代码绝不直接 `#include "sl_config_default.h"`**——必须经由 [src/config/internal.h](src/config/internal.h) 拿到 `SL_*` 宏。`sl_config_default.h` 只承载用户可调的配置项；派生宏 / sanity check 集中到 `internal.h`。
+6. **业务方覆写通过 `-DSL_USER_CONFIG=\"path/to/header.h\"`**。不用约定 include path、不放 shim 文件——业务在编译命令里给一个宏指向自己的配置头，[src/config/internal.h](src/config/internal.h) 在最前面 `#include SL_USER_CONFIG` 拉它。这样我们不必猜业务的 include path 布局。
 7. **库内部 include 必须用相对路径**（如 `#include "../../config/internal.h"`）。原因同上：业务方对本库的 include path 配置无法预知，相对路径让库源文件之间的引用基于文件位置解析。**唯一例外**：业务通过 `SL_USER_CONFIG` / `SL_*_INCLUDE` 提供的头按名引入。
 8. **代码注释默认中文**。代码内所有非平凡注释用中文（数学算式、TODO 标签、IWYU pragma 等机械文字仍用原文）。
 
 ## 分支策略
 
-- `main`：开发分支。完整仓库——`src/`、`test/`、`config/`、`project.yml`、`deps/`、CI workflow。日常工作在这里。
-- `release`：发布分支。仅 `src/` 与 `config/` 内容（GitHub Actions 从 `main` 抽取重写）。业务仓库以 submodule 方式引入此分支，目录干净。
+- `main`：开发分支。完整仓库——`src/`（含 `source/` 与 `config/` 两个子目录）、`test/`、`project.yml`、`deps/`、CI workflow。日常工作在这里。
+- `release`：发布分支。仅 `src/` 内容（GitHub Actions 从 `main` 抽取重写）。业务仓库以 submodule 方式引入此分支，目录干净。
 - **不要手动 push `release`**——它由 CI 重写，手改会被覆盖。所有改动打到 `main`。
 
 ## 目录布局
 
 ```
 src/
-  <module>/
-    sl_<module>.c
-    sl_<module>.h
-    sl_<module>_rtos.c        # 可选，case 1：要求 SL_USE_FREERTOS=1，否则 #error
-    test_sl_<module>.c        # 测试紧邻实现
-    test_sl_<module>_rtos.c   # 可选，配套门卫的测试文件
-config/
-  sl_config_default.h         # 库内默认值，仅用户可调项；库代码不直接 include
-  internal.h                  # 库内部入口：先 include 业务 SL_USER_CONFIG，再 include 默认头 + 全局 sanity
+  source/
+    <module>/
+      sl_<module>.c
+      sl_<module>.h
+      sl_<module>_rtos.c        # 可选，case 1：要求 SL_USE_FREERTOS=1，否则 #error
+      test_sl_<module>.c        # 测试紧邻实现
+      test_sl_<module>_rtos.c   # 可选，配套门卫的测试文件
+  config/
+    sl_config_default.h         # 库内默认值，仅用户可调项；库代码不直接 include
+    internal.h                  # 库内部入口：先 include 业务 SL_USER_CONFIG，再 include 默认头 + 全局 sanity
 test/
   support/
     sl_config.h               # 测试用配置（仅 test 构建可见）
@@ -46,7 +47,7 @@ deps/
 project.yml                   # Ceedling 主配置
 ```
 
-每个模块自带源、头、测试。`release` 分支保持 `src/` 与 `config/` 同样的相对结构（仅 `sl_config_default.h` + `internal.h` 两个 config 头），业务方 include path 加上 submodule 根目录即可。
+每个模块自带源、头、测试。`release` 分支保持 `src/` 同样的相对结构（含 `source/` 与 `config/` 两个子目录），业务方 include path 加上 submodule 根目录下的 `src/` 即可。
 
 ## 命名约定
 
@@ -89,7 +90,7 @@ sl_config_default.h       # 库内默认值，#ifndef 守卫保留业务覆写
 3. 库代码视情况 `#include "../../config/internal.h"`——**永远不**直接 include `sl_config_default.h` 或业务的配置头。
 4. 在仓库内 `ceedling test` 时**不**定义 `SL_USER_CONFIG`，mixin 直接通过 `-DSL_USE_X=1` 注入个别开关，未注入项由 `sl_config_default.h` 兜底。
 
-[config/sl_config_default.h](config/sl_config_default.h) 只放两类用户可调项：
+[src/config/sl_config_default.h](src/config/sl_config_default.h) 只放两类用户可调项：
 
 **功能开关**——`#if` 用，0/1：
 ```c
@@ -115,7 +116,7 @@ sl_config_default.h       # 库内默认值，#ifndef 守卫保留业务覆写
 /* …类似 */
 ```
 
-[config/internal.h](config/internal.h) 的职责（轻量）：
+[src/config/internal.h](src/config/internal.h) 的职责（轻量）：
 
 - 顶部 `#ifdef SL_USER_CONFIG #include SL_USER_CONFIG #endif`：把业务覆盖头拉进来（如有）。
 - 然后 `#include "sl_config_default.h"`：默认值通过 `#ifndef` 守卫填空业务未覆写的项。
@@ -312,13 +313,13 @@ CI 在 `all_on` 上跑 `ceedling gcov:all`，把生成的 HTML 报告作为 arti
 3. **test**（`rake test`）：上述 mixin 组合全部跑，含 `all_on`。
 4. **coverage**（`rake coverage`）：清 `build/gcov` → `ceedling gcov:all --mixin all_on`，HTML 报告做 artifact。
 
-`main` 通过全部检查 + 合并到 `main` 后，单独的 release workflow 触发：抽取 `src/` 与 `config/`（含 `sl_config_default.h` 与 `internal.h`），重写到 `release` 分支。`release` 分支不跑 fmt/lint/test/coverage（已经是 `main` 验证过的快照）。
+`main` 通过全部检查 + 合并到 `main` 后，单独的 release workflow 触发：抽取 `src/`（含 `source/` 与 `config/` 两个子目录），重写到 `release` 分支。`release` 分支不跑 fmt/lint/test/coverage（已经是 `main` 验证过的快照）。
 
 ## 给 AI Agent 的工作约束
 
 - 修改库代码时**永远不要假设业务方能改任何东西**。需要新行为？通过新配置项实现，并在 `sl_config_default.h` 给默认值。
 - 新增模块的 checklist：
-  1. 建 `src/<module>/`；
+  1. 建 `src/source/<module>/`；
   2. 加 `sl_<module>.{c,h}` + `test_sl_<module>.c`，所有公共标识符 `sl_` 前缀，头文件 `#pragma once`；
   3. 跨目录 include 用相对路径（如 `"../../config/internal.h"`），同目录 include 直接 `"sl_<module>.h"`；
   4. 文件需要 `SL_USE_*` 或 `SL_*_INCLUDE` 时 `#include "../../config/internal.h"`；纯算法模块不 include 任何 config 头；

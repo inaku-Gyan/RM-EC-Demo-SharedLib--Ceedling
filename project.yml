@@ -101,12 +101,12 @@
     - +:test/**
     - -:test/support
     - -:test/mixins
-    - +:src/**       # 测试文件紧邻被测模块
+    - +:src/source/**       # 测试文件紧邻被测模块
   :source:
-    - src/**
+    - src/source/**
   :include:
-    - src/**
-    - config         # 库内 internal.h / sl_config_default.h
+    - src/source/**
+    - src/config            # 库内 internal.h / sl_config_default.h
   :support:
     - test/support
   :libraries: []

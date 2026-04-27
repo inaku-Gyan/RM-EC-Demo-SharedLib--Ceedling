@@ -16,7 +16,7 @@ require 'rubygems'
 # ---------- 工具与路径 ----------
 CLANG_FORMAT   = ENV.fetch('CLANG_FORMAT', 'clang-format')
 CLANG_TIDY     = ENV.fetch('CLANG_TIDY',   'clang-tidy')
-SOURCE_GLOBS   = %w[src/**/*.c src/**/*.h config/**/*.c config/**/*.h].freeze
+SOURCE_GLOBS   = %w[src/**/*.c src/**/*.h].freeze
 COMPILE_DB     = 'build/artifacts/compile_commands.json'
 COMPLETE_MIXIN = 'all_on'
 
@@ -41,7 +41,7 @@ CLEAN.include 'build'
 # ---------- 辅助 ----------
 def source_files
   files = SOURCE_GLOBS.flat_map { |g| Dir.glob(g) }.sort
-  abort '未找到源文件（src/ 与 config/ 下没有 .c/.h）' if files.empty?
+  abort '未找到源文件（src/ 下没有 .c/.h）' if files.empty?
   files
 end
 
