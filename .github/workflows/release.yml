@@ -56,15 +56,34 @@ jobs:
           git -C release remote add origin \
             "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
 
-      # 1. 校验是否在 main 上
-      - name: 校验所选 ref 在 main 上
+      # 1. 校验所选 ref：workflow_dispatch 只能选 branch 或 tag
+      #    - branch：必须是 main 本身
+      #    - tag：必须落在 main 上
+      - name: 校验所选 ref
         working-directory: main
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
         run: |
           set -euo pipefail
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
-            echo "::error::提交 $GITHUB_SHA 不在 main 分支上"
-            exit 1
-          fi
+          case "$REF_TYPE" in
+            branch)
+              if [[ "$REF_NAME" != "main" ]]; then
+                echo "::error::只能从 main 分支或 main 上的 tag 发布；当前 ref 是分支 '$REF_NAME'"
+                exit 1
+              fi
+              ;;
+            tag)
+              if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
+                echo "::error::tag '$REF_NAME' 指向的提交 $GITHUB_SHA 不在 main 分支上"
+                exit 1
+              fi
+              ;;
+            *)
+              echo "::error::不支持的 ref 类型 '$REF_TYPE'（期望 branch 或 tag）"
+              exit 1
+              ;;
+          esac
 
       # 2. 选择最终 tag，输出 release_tag 与 create_tag
       - name: 决定发布 tag
