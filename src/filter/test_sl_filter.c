@@ -1,8 +1,10 @@
 #include "unity.h"
 #include "sl_filter.h"
 
-void setUp(void) {}
-void tearDown(void) {}
+void setUp(void) {
+}
+void tearDown(void) {
+}
 
 void test_sl_filter_dot_basic(void) {
     float a[4] = {1.0f, 2.0f, 3.0f, 4.0f};

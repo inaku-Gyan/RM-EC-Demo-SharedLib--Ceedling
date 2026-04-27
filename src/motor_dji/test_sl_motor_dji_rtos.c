@@ -10,8 +10,10 @@ TEST_SOURCE_FILE("sl_motor_dji_rtos.c")
 
 /* setUp / tearDown 放在文件级 #if 之外，否则 mixin 把所有用例都门卫掉时
  * runner 仍引用这两个符号，链接失败。 */
-void setUp(void) {}
-void tearDown(void) {}
+void setUp(void) {
+}
+void tearDown(void) {
+}
 
 #if SL_USE_FREERTOS
 

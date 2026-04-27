@@ -1,5 +1,6 @@
 #include "sl_motor_dji.h"
 
+#include <stdint.h>
 #include <string.h>
 
 void sl_motor_dji_init(sl_motor_dji_t *motor) {

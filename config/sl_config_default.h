@@ -15,25 +15,25 @@
 /* ----- 功能开关：0 = 关闭，1 = 启用 -------------------------------------- */
 
 #ifndef SL_USE_FREERTOS
-#define SL_USE_FREERTOS 0
+    #define SL_USE_FREERTOS 0
 #endif
 
 #ifndef SL_USE_ARM_DSP
-#define SL_USE_ARM_DSP 0
+    #define SL_USE_ARM_DSP 0
 #endif
 
 #ifndef SL_USE_HAL
-#define SL_USE_HAL 0
+    #define SL_USE_HAL 0
 #endif
 
 /* ----- HAL 版本选择（仅当 SL_USE_HAL=1 时有意义） ------------------ */
 
 #ifndef SL_HAL_VERSION_F4
-#define SL_HAL_VERSION_F4 0
+    #define SL_HAL_VERSION_F4 0
 #endif
 
 #ifndef SL_HAL_VERSION_H7
-#define SL_HAL_VERSION_H7 0
+    #define SL_HAL_VERSION_H7 0
 #endif
 
 /* ----- 外部依赖头文件路径 ------------------------------------------------- *
@@ -42,34 +42,34 @@
 
 #if SL_USE_FREERTOS
 
-#ifndef SL_INCLUDE_FREERTOS
-#define SL_INCLUDE_FREERTOS "FreeRTOS.h"
-#endif
+    #ifndef SL_INCLUDE_FREERTOS
+        #define SL_INCLUDE_FREERTOS "FreeRTOS.h"
+    #endif
 
-#ifndef SL_INCLUDE_FREERTOS_TASK
-#define SL_INCLUDE_FREERTOS_TASK "task.h"
-#endif
+    #ifndef SL_INCLUDE_FREERTOS_TASK
+        #define SL_INCLUDE_FREERTOS_TASK "task.h"
+    #endif
 
 #else // 关闭 FreeRTOS 时不应定义相关路径
 
-#ifdef SL_INCLUDE_FREERTOS
-#error "SL_USE_FREERTOS = 0 时不应定义 SL_INCLUDE_FREERTOS"
-#endif
+    #ifdef SL_INCLUDE_FREERTOS
+        #error "SL_USE_FREERTOS = 0 时不应定义 SL_INCLUDE_FREERTOS"
+    #endif
 
-#ifdef SL_INCLUDE_FREERTOS_TASK
-#error "SL_USE_FREERTOS = 0 时不应定义 SL_INCLUDE_FREERTOS_TASK"
-#endif
+    #ifdef SL_INCLUDE_FREERTOS_TASK
+        #error "SL_USE_FREERTOS = 0 时不应定义 SL_INCLUDE_FREERTOS_TASK"
+    #endif
 
 #endif // SL_USE_FREERTOS
 
 #if SL_USE_ARM_DSP && !defined(SL_INCLUDE_ARM_MATH)
-#define SL_INCLUDE_ARM_MATH "arm_math.h"
+    #define SL_INCLUDE_ARM_MATH "arm_math.h"
 #elif !SL_USE_ARM_DSP && defined(SL_INCLUDE_ARM_MATH)
-#error "SL_USE_ARM_DSP = 0 时不应定义 SL_INCLUDE_ARM_MATH"
+    #error "SL_USE_ARM_DSP = 0 时不应定义 SL_INCLUDE_ARM_MATH"
 #endif
 
 #if SL_USE_HAL && !defined(SL_INCLUDE_HAL)
-#define SL_INCLUDE_HAL "stm32f4xx_hal.h"
+    #define SL_INCLUDE_HAL "stm32f4xx_hal.h"
 #elif !SL_USE_HAL && defined(SL_INCLUDE_HAL)
-#error "SL_USE_HAL = 0 时不应定义 SL_INCLUDE_HAL"
+    #error "SL_USE_HAL = 0 时不应定义 SL_INCLUDE_HAL"
 #endif

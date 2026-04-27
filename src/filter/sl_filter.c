@@ -1,8 +1,10 @@
 #include "../../config/internal.h"
 #include "sl_filter.h"
 
+#include <stdint.h>
+
 #if SL_USE_ARM_DSP
-#include SL_INCLUDE_ARM_MATH
+    #include SL_INCLUDE_ARM_MATH
 #endif
 
 float sl_filter_dot(const float *a, const float *b, uint32_t n) {

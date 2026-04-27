@@ -1,8 +1,10 @@
 #include "unity.h"
 #include "sl_pid.h"
 
-void setUp(void) {}
-void tearDown(void) {}
+void setUp(void) {
+}
+void tearDown(void) {
+}
 
 void test_sl_pid_proportional_only(void) {
     sl_pid_config_t cfg = {.kp = 2.0f};

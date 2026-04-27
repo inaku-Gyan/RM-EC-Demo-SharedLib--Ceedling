@@ -28,12 +28,10 @@ void sl_pid_reset(sl_pid_t *pid) {
 float sl_pid_update(sl_pid_t *pid, float setpoint, float measurement, float dt) {
     float error = setpoint - measurement;
 
-    pid->integral = clamp_symmetric(pid->integral + error * dt, pid->cfg.i_limit);
+    pid->integral = clamp_symmetric(pid->integral + (error * dt), pid->cfg.i_limit);
     float derivative = (dt > 0.0f) ? (error - pid->prev_error) / dt : 0.0f;
     pid->prev_error = error;
 
-    float out = pid->cfg.kp * error
-              + pid->cfg.ki * pid->integral
-              + pid->cfg.kd * derivative;
+    float out = (pid->cfg.kp * error) + (pid->cfg.ki * pid->integral) + (pid->cfg.kd * derivative);
     return clamp_symmetric(out, pid->cfg.out_limit);
 }

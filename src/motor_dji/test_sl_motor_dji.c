@@ -1,8 +1,10 @@
 #include "unity.h"
 #include "sl_motor_dji.h"
 
-void setUp(void) {}
-void tearDown(void) {}
+void setUp(void) {
+}
+void tearDown(void) {
+}
 
 void test_sl_motor_dji_init_zeroes_struct(void) {
     sl_motor_dji_t m = {.target_current = 5, .actual_speed = 7};
