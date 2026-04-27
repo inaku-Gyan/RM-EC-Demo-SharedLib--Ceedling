@@ -36,8 +36,6 @@ src/
     sl_config_default.h         # 库内默认值，仅用户可调项；库代码不直接 include
     internal.h                  # 库内部入口：先 include 业务 SL_USER_CONFIG，再 include 默认头 + 全局 sanity
 test/
-  support/
-    sl_config.h               # 测试用配置（仅 test 构建可见）
   mixins/                     # Ceedling mixins，每个对应一套宏配置
 deps/
   stubs/                      # 测试期 vendor 桩头：FreeRTOS / arm_math / hal_f4 / hal_h7
