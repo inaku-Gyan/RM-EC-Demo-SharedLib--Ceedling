@@ -16,7 +16,7 @@ require 'rubygems'
 # ---------- 工具与路径 ----------
 CLANG_FORMAT   = ENV.fetch('CLANG_FORMAT', 'clang-format')
 CLANG_TIDY     = ENV.fetch('CLANG_TIDY',   'clang-tidy')
-SOURCE_GLOBS   = %w[src/**/*.c src/**/*.h].freeze
+SOURCE_GLOBS   = %w[src/**/*.c src/**/*.h test/**/*.c test/**/*.h].freeze
 COMPILE_DB     = 'build/artifacts/compile_commands.json'
 COMPLETE_MIXIN = 'all_on'
 
