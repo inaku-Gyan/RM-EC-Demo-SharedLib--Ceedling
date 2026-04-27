@@ -1,0 +1,10 @@
+{
+  "clangd.arguments": [
+    "--compile-commands-dir=${workspaceFolder}/build/artifacts", // compile_commands.json 所在目录
+    "--background-index",
+    "--clang-tidy",
+    "--header-insertion=iwyu",
+    "--header-insertion-decorators"
+  ],
+  "C_Cpp.intelliSenseEngine": "disabled"
+}

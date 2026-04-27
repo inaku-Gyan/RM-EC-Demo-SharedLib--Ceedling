@@ -1,11 +1,15 @@
 # IDE and editor files
 .idea/
 *.iml
+
 .vscode/*
-!.vscode/settings.json
+!.vscode/settings.example.json
+!.vscode/extensions.json
+
 *.swp
 *.swo
 
+# AI agents
 .claude/
 CLAUDE.md
 
@@ -16,3 +20,7 @@ Thumbs.db
 
 # Build output
 build/
+
+# Tool files
+.clangd
+.cache/
