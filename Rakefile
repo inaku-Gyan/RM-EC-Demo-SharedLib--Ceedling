@@ -13,9 +13,28 @@ require 'rbconfig'
 require 'rake/clean'
 require 'rubygems'
 
+# ---------- 工具发现 ----------
+# 在 PATH 中搜可执行文件；Windows 上按 PATHEXT 拼后缀（.exe/.bat/...），POSIX 上无后缀
+def which(cmd)
+  exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(File::PATH_SEPARATOR) : ['']
+  ENV.fetch('PATH', '').split(File::PATH_SEPARATOR).each do |dir|
+    exts.each do |ext|
+      path = File.join(dir, "#{cmd}#{ext}")
+      return path if File.file?(path) && File.executable?(path)
+    end
+  end
+  nil
+end
+
+# 候选名按序找 PATH 里第一个能用的；都找不到时返回最后一个候选，让后续版本检查统一报错
+def pick_tool(*candidates)
+  candidates.find { |c| which(c) } || candidates.last
+end
+
 # ---------- 工具与路径 ----------
-CLANG_FORMAT   = ENV.fetch('CLANG_FORMAT', 'clang-format')
-CLANG_TIDY     = ENV.fetch('CLANG_TIDY',   'clang-tidy')
+# 优先选版本化后缀（clang-format-18 / clang-tidy-18），未装时回退到无后缀名
+CLANG_FORMAT   = ENV.fetch('CLANG_FORMAT') { pick_tool('clang-format-18', 'clang-format') }
+CLANG_TIDY     = ENV.fetch('CLANG_TIDY')   { pick_tool('clang-tidy-18',   'clang-tidy') }
 SOURCE_GLOBS   = %w[src/**/*.c src/**/*.h test/**/*.c test/**/*.h].freeze
 COMPILE_DB     = 'build/artifacts/compile_commands.json'
 COMPLETE_MIXIN = 'all_on'

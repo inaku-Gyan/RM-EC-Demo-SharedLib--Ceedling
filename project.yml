@@ -99,7 +99,6 @@
 :paths:
   :test:
     - +:test/**
-    - -:test/support
     - -:test/mixins
     - +:src/source/**       # 测试文件紧邻被测模块
   :source:
@@ -107,8 +106,6 @@
   :include:
     - src/source/**
     - src/config            # 库内 internal.h / sl_config_default.h
-  :support:
-    - test/support
   :libraries: []
 
 # You can even specify specific files to add or remove from your test

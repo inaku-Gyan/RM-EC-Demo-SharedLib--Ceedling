@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+    paths: &ci-paths
+      - "**.c"
+      - "**.h"
+      - "**.yml"
+      - ".clang-format"
+      - ".clang-tidy"
+      - "Rakefile"
+  pull_request:
+    branches: [ main ]
+    paths: *ci-paths
+
+# 同 ref 上更早的运行被新 push 取消，避免 PR 连续 push 时排队浪费 minute
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: rake ci (fmt + lint + test + coverage)
+    # 24.04 默认仓库自带 clang-format-18 / clang-tidy-18，省去 apt.llvm.org repo
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      # 与 project.yml 中的 :ceedling_version: 1.0.1 对齐
+      - name: Install Ceedling
+        run: gem install ceedling -v 1.0.1
+
+      - name: Install LLVM 18 + gcovr
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format-18 clang-tidy-18 gcovr
+
+      - name: rake ci
+        env:
+          CLANG_FORMAT: clang-format-18
+          CLANG_TIDY: clang-tidy-18
+        run: rake ci
+
+      # 即使前面失败也尝试上传——便于诊断
+      - name: Upload coverage HTML report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-html
+          path: build/artifacts/gcov/gcovr/
+          if-no-files-found: warn
