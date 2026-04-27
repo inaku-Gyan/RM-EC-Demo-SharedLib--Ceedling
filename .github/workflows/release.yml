@@ -149,10 +149,16 @@ jobs:
         run: |
           set -euo pipefail
 
-          # 清空 release/（保留 .git），再把 main/src/* 平铺过来
+          # 清空 release/（保留 .git），再把 main/src/* 平铺过来；
+          # 测试文件/目录紧邻实现摆放，发布时一并排除：
+          #   - test_* 前缀（如 test_sl_pid.c、test_fixtures/）
+          #   - 名字就叫 test 或 tests 的目录
           find release -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
-          shopt -s dotglob
-          cp -r main/src/* release/
+          rsync -a \
+            --exclude='test_*' \
+            --exclude='test' \
+            --exclude='tests' \
+            main/src/ release/
 
           cd release
           git config user.name 'github-actions[bot]'
