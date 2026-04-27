@@ -1,0 +1,53 @@
+# EC-Shared-Lib 代码格式
+# 目标：嵌入式 C，4 空格缩进，列宽 100。
+# 唯一非默认偏好：嵌套在 #if 块内部的预编译指令（#include / #if / #error 等）会缩进。
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+# ---------- 缩进 ----------
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+IndentCaseLabels: true
+# #if 块内部的预编译指令缩进
+IndentPPDirectives: BeforeHash
+PPIndentWidth: 4
+
+# ---------- 行宽 / 折行 ----------
+ColumnLimit: 100
+AlignAfterOpenBracket: Align
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+BinPackArguments: true
+BinPackParameters: true
+
+# ---------- 大括号 ----------
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+InsertBraces: true
+
+# ---------- 指针/空格 ----------
+PointerAlignment: Right
+DerivePointerAlignment: false
+SpacesBeforeTrailingComments: 1
+
+# ---------- include 顺序 ----------
+# 不重排 include：IWYU pragma 与 vendor 隐式依赖（FreeRTOS.h 必须在 task.h 之前）顺序敏感
+SortIncludes: Never
+IncludeBlocks: Preserve
+
+# ---------- 注释 ----------
+# 中文注释 reflow 容易破坏标点，禁掉
+ReflowComments: false
+AlignTrailingComments: true
+
+# ---------- 杂项 ----------
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+AlwaysBreakAfterReturnType: None

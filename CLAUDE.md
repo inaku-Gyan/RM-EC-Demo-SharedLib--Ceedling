@@ -282,11 +282,20 @@ CI 在 `all_on` 上跑 `ceedling gcov:all`，把生成的 HTML 报告作为 arti
 
 `main` 分支每次 push/PR 跑：
 
-1. **fmt**：`clang-format` 严格检查，仓库根 [.clang-format](.clang-format) 锁定风格。无 reformat 即通过：
+1. **fmt**：`clang-format` 严格检查，仓库根 [.clang-format](.clang-format) 锁定风格（基于 LLVM；4 空格缩进；列宽 100；嵌套在 `#if` 内的预编译指令缩进 `IndentPPDirectives: BeforeHash`；`SortIncludes: Never` 保护 IWYU/vendor 顺序）。无 reformat 即通过：
    ```bash
    clang-format --dry-run --Werror $(find src config -name '*.c' -o -name '*.h')
    ```
-2. **lint**：`clang-tidy` 严格规则集（至少启用 `bugprone-*`, `cert-*`, `readability-*`, `misc-*`, `portability-*`），仓库根 [.clang-tidy](.clang-tidy) 锁定。允许的 disable 必须在文件内 `// NOLINT(...)` 标注理由。
+   注：clang-format 仅缩进 `#if` 内的**预编译指令**（如 `#include`/嵌套 `#if`）；`#if` 块内的普通 C 代码不会因 PP 嵌套而额外缩进——这是 clang-format 的固有限制。
+2. **lint**：`clang-tidy 22` 严格规则集（启用 `bugprone-*`, `cert-*`, `misc-*`, `portability-*`, `readability-*`），仓库根 [.clang-tidy](.clang-tidy) 锁定，`WarningsAsErrors: '*'` 严格。允许的 disable 必须在文件内 `// NOLINT(check-name)` 标注理由。运行：
+   ```bash
+   ceedling test:all --mixin all_on >/dev/null  # 生成 build/artifacts/compile_commands.json
+   clang-tidy-22 -p build/artifacts $(find src config -name '*.c' -o -name '*.h')
+   ```
+   **clang-tidy 22 已知限制**：
+   - `readability-identifier-naming` 移除了 `StaticFunctionCase`/`StaticFunctionPrefix` 与 `*Pattern` 选项，`FunctionPrefix` 会同时套到 static 函数上。本仓库的 `sl_` 前缀策略（公共 API 加、static 内部不加）因此**不在 clang-tidy 强制范围内**——靠约定与 code review 保证。
+   - 不报警「未生效的 IWYU pragma」（需 include-what-you-use 工具本身，不在依赖中）。
+   - 不报警「未生效的 NOLINT 注释」（LLVM 22 仍未内建该检查）。
 3. **test**：上述 mixin 组合全部跑，含 `all_on`。
 4. **coverage**：`ceedling gcov:all --mixin all_on`，HTML 报告做 artifact。
 
