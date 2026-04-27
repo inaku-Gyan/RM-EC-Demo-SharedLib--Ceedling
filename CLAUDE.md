@@ -12,7 +12,7 @@ RoboMaster 多个 C 嵌入式项目共用的源码库。仅有 test 目标，不
 4. **不向后兼容默认未定义的宏**。每个 `SL_*` 宏都必须在 [src/config/sl_config_default.h](src/config/sl_config_default.h) 有默认值；库代码可以直接 `#if` 使用而不需先做 `#ifndef ... #define ... #endif` 兜底。
 5. **库代码绝不直接 `#include "sl_config_default.h"`**——必须经由 [src/config/internal.h](src/config/internal.h) 拿到 `SL_*` 宏。`sl_config_default.h` 只承载用户可调的配置项；派生宏 / sanity check 集中到 `internal.h`。
 6. **业务方覆写通过 `-DSL_USER_CONFIG=\"path/to/header.h\"`**。不用约定 include path、不放 shim 文件——业务在编译命令里给一个宏指向自己的配置头，[src/config/internal.h](src/config/internal.h) 在最前面 `#include SL_USER_CONFIG` 拉它。这样我们不必猜业务的 include path 布局。
-7. **库内部 include 必须用相对路径**（如 `#include "../../config/internal.h"`）。原因同上：业务方对本库的 include path 配置无法预知，相对路径让库源文件之间的引用基于文件位置解析。**唯一例外**：业务通过 `SL_USER_CONFIG` / `SL_*_INCLUDE` 提供的头按名引入。
+7. **库内部 include 必须用相对路径**（如 `#include "../../config/internal.h"`）。原因同上：业务方对本库的 include path 配置无法预知，相对路径让库源文件之间的引用基于文件位置解析。**唯一例外**：业务通过 `SL_USER_CONFIG` / `SL_INCLUDE_*` 提供的头按名引入。
 8. **代码注释默认中文**。代码内所有非平凡注释用中文（数学算式、TODO 标签、IWYU pragma 等机械文字仍用原文）。
 
 ## 分支策略
@@ -56,7 +56,7 @@ project.yml                   # Ceedling 主配置
 | 公共函数    | `sl_<module>_<verb>`                                 | `sl_pid_update`                     |
 | 公共类型    | `sl_<module>_t` / `sl_<module>_<noun>_t`             | `sl_pid_t`, `sl_pid_config_t`       |
 | 公共宏      | `SL_<MODULE>_<NAME>`                                 | `SL_PID_MAX_INTEGRAL`               |
-| 配置宏      | `SL_USE_<DEP>` / `SL_<DEP>_INCLUDE`                  | `SL_USE_FREERTOS`, `SL_INCLUDE_HAL` |
+| 配置宏      | `SL_USE_<DEP>` / `SL_INCLUDE_<DEP>`                  | `SL_USE_FREERTOS`, `SL_INCLUDE_HAL` |
 | 文件名      | `sl_<module>.{c,h}`, `test_sl_<module>.c`            | `sl_pid.h`                          |
 | 内部 static | 无前缀，snake_case                                   | `static void clamp(...)`            |
 | 头文件防重  | **`#pragma once`**（不再使用 `#ifndef ... #define`） | 所有 `.h` 都用                      |
@@ -64,7 +64,7 @@ project.yml                   # Ceedling 主配置
 包含规则：
 
 - **完全 pure 的模块** → 不要 include 任何 config 头
-- **需要 `SL_USE_*` 或 `SL_*_INCLUDE`** → `#include "../../config/internal.h"`，再用 `#if SL_USE_X #include SL_X_INCLUDE #endif` 自己拉 vendor 头
+- **需要 `SL_USE_*` 或 `SL_INCLUDE_*`** → `#include "../../config/internal.h"`，再用 `#if SL_USE_X #include SL_X_INCLUDE #endif` 自己拉 vendor 头
 - 内部 include 一律相对路径（同目录 `"sl_pid.h"`、跨目录 `"../../config/internal.h"`）；vendor 头与业务 `SL_USER_CONFIG` 是例外，按名/按宏引入
 - 转发型 wrapper 头中的 `#include` 加 `// IWYU pragma: export`；库内 wrapper-only 引入或 vendor 隐式依赖（如 FreeRTOS 要求 `FreeRTOS.h` 先于 `task.h`）加 `// IWYU pragma: keep`，避免 clang-tidy `misc-include-cleaner` 误删
 
@@ -127,7 +127,7 @@ sl_config_default.h       # 库内默认值，#ifndef 守卫保留业务覆写
 
 - 用户可调项加到 `sl_config_default.h` 并给默认值，注释说明语义、单位、合法值；
 - 全局派生宏 / sanity check 加到 `internal.h`；
-- **新增依赖**：默认值（`SL_USE_<DEP>` + `SL_<DEP>_INCLUDE`）放 `sl_config_default.h`；不需要给依赖另外加 wrapper 头——直接在用到的源文件里写 `#if SL_USE_<DEP> #include SL_<DEP>_INCLUDE #endif`；
+- **新增依赖**：默认值（`SL_USE_<DEP>` + `SL_INCLUDE_<DEP>`）放 `sl_config_default.h`；不需要给依赖另外加 wrapper 头——直接在用到的源文件里写 `#if SL_USE_<DEP> #include SL_INCLUDE_<DEP> #endif`；
 - 加 mixin 或扩展现有 mixin 覆盖该项的非默认取值（`all_on` 也要更新）。
 
 ## 外部依赖：两种处理方式
@@ -322,10 +322,10 @@ CI 在 `all_on` 上跑 `ceedling gcov:all`，把生成的 HTML 报告作为 arti
   1. 建 `src/source/<module>/`；
   2. 加 `sl_<module>.{c,h}` + `test_sl_<module>.c`，所有公共标识符 `sl_` 前缀，头文件 `#pragma once`；
   3. 跨目录 include 用相对路径（如 `"../../config/internal.h"`），同目录 include 直接 `"sl_<module>.h"`；
-  4. 文件需要 `SL_USE_*` 或 `SL_*_INCLUDE` 时 `#include "../../config/internal.h"`；纯算法模块不 include 任何 config 头；
+  4. 文件需要 `SL_USE_*` 或 `SL_INCLUDE_*` 时 `#include "../../config/internal.h"`；纯算法模块不 include 任何 config 头；
   5. 若依赖外部库，按 case 1（`#if/#else #error`）/ case 2（`#if/#else`）选门卫风格，自己写 `#if SL_USE_X #include SL_X_INCLUDE #endif` 拉 vendor 头。
 - 新增外部依赖：
-  1. 在 `sl_config_default.h` 加 `SL_USE_<DEP>` + `SL_<DEP>_INCLUDE` 默认值；
+  1. 在 `sl_config_default.h` 加 `SL_USE_<DEP>` + `SL_INCLUDE_<DEP>` 默认值；
   2. 加 mixin（同时更新 `all_on` 包含新依赖）；
   3. 必要时在 `deps/stubs/<dep>/` 放测试桩。
 - **不要直接修改 `release` 分支**——它由 CI 生成。
