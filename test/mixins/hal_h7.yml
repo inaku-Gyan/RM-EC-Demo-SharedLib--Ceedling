@@ -1,0 +1,11 @@
+---
+# hal_h7: STM32H7 HAL. Overrides SL_HAL_INCLUDE since H7's master header has a
+# different name from F4's default.
+:defines:
+  :test:
+    - SL_USE_HAL=1
+    - SL_HAL_VERSION_H7=1
+    - SL_HAL_INCLUDE=\"stm32h7xx_hal.h\"
+:paths:
+  :include:
+    - +:deps/stubs/hal_h7

@@ -1,0 +1,8 @@
+---
+# dsp: enable CMSIS-DSP accelerated paths.
+:defines:
+  :test:
+    - SL_USE_ARM_DSP=1
+:paths:
+  :include:
+    - +:deps/stubs/arm_math

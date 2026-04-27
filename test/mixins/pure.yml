@@ -1,0 +1,7 @@
+---
+# pure: no external deps; only algorithm-layer code is exercised.
+# All SL_USE_* knobs default to 0 in sl_config_default.h, so this mixin
+# only needs to tag the build.
+:defines:
+  :test:
+    - SL_PROFILE_PURE=1

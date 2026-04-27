@@ -1,0 +1,11 @@
+---
+# hal_f4: STM32F4 HAL. Pulls the F4 stub header at deps/stubs/hal_f4 so the
+# default SL_HAL_INCLUDE ("stm32f4xx_hal.h") resolves in tests. Real builds
+# repoint via business-side sl_config.h.
+:defines:
+  :test:
+    - SL_USE_HAL=1
+    - SL_HAL_VERSION_F4=1
+:paths:
+  :include:
+    - +:deps/stubs/hal_f4

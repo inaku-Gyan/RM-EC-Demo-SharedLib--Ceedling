@@ -1,0 +1,16 @@
+---
+# all_on: every SL_USE_* knob enabled. Purpose is *syntax coverage* — ensures
+# every #if-guarded code path compiles. Not necessarily a realistic business
+# config. CI must run this so guards don't quietly bit-rot.
+# Uses the F4 HAL stub (default SL_HAL_INCLUDE).
+:defines:
+  :test:
+    - SL_USE_FREERTOS=1
+    - SL_USE_ARM_DSP=1
+    - SL_USE_HAL=1
+    - SL_HAL_VERSION_F4=1
+:paths:
+  :include:
+    - +:deps/stubs/freertos
+    - +:deps/stubs/arm_math
+    - +:deps/stubs/hal_f4

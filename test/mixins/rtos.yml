@@ -1,0 +1,9 @@
+---
+# rtos: enable FreeRTOS-dependent code paths. Adds the FreeRTOS stub
+# include path so SL_FREERTOS_INCLUDE / SL_FREERTOS_TASK_INCLUDE resolve.
+:defines:
+  :test:
+    - SL_USE_FREERTOS=1
+:paths:
+  :include:
+    - +:deps/stubs/freertos

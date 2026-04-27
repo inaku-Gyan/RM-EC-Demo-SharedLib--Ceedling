@@ -1,0 +1,16 @@
+#include "sl_filter.h"
+#include "sl_config_internal.h" // IWYU pragma: keep — provides SL_USE_ARM_DSP and arm_math symbols
+
+float sl_filter_dot(const float *a, const float *b, uint32_t n) {
+#if SL_USE_ARM_DSP
+    float result;
+    arm_dot_prod_f32(a, b, n, &result);
+    return result;
+#else
+    float result = 0.0f;
+    for (uint32_t i = 0; i < n; ++i) {
+        result += a[i] * b[i];
+    }
+    return result;
+#endif
+}
