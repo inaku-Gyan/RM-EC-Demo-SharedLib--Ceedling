@@ -42,8 +42,9 @@ CheckOptions:
 
   # 变量
   readability-identifier-naming.VariableCase: lower_case
-  readability-identifier-naming.GlobalVariableCase: lower_case
-  readability-identifier-naming.GlobalVariablePrefix: 'sl_'
+  # 文件级变量（含 file-scope static，clang-tidy 18 下两者同归此类）：
+  # 默认 snake_case；公共 extern 全局变量可选用 sl_ 前缀。文件内 static 不要前缀。
+  readability-identifier-naming.GlobalVariablePattern: '^(sl_)?[a-z][a-z0-9_]*$'
 
   # 类型
   readability-identifier-naming.TypedefCase: lower_case

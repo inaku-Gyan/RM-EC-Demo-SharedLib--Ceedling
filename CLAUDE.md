@@ -36,8 +36,6 @@ src/
     sl_config_default.h         # 库内默认值，仅用户可调项；库代码不直接 include
     internal.h                  # 库内部入口：先 include 业务 SL_USER_CONFIG，再 include 默认头 + 全局 sanity
 test/
-  support/
-    sl_config.h               # 测试用配置（仅 test 构建可见）
   mixins/                     # Ceedling mixins，每个对应一套宏配置
 deps/
   stubs/                      # 测试期 vendor 桩头：FreeRTOS / arm_math / hal_f4 / hal_h7
@@ -227,7 +225,7 @@ float sl_filter_dot(const float *a, const float *b, uint32_t n) {
 | `rake ci`         | fmt + lint + test + coverage（CI workflow 调用此项）         |
 | `rake clean`      | 删 `build/`                                                  |
 
-工具二进制名走 ENV：`CLANG_FORMAT` / `CLANG_TIDY` 可覆盖（默认 `clang-format` / `clang-tidy`）。lint 固定 clang-tidy 18（理由见下文「CI」一节）；若系统默认是别的版本，本地用 `CLANG_TIDY=clang-tidy-18 rake lint` 指定。Ceedling 经 `RbConfig.ruby + -S` 调用，避开 Windows 的 .bat shim 寻路问题。
+工具二进制名走 ENV：`CLANG_FORMAT` / `CLANG_TIDY` 可覆盖。Rakefile 自动优先在 PATH 上选版本化名（`clang-format-18` / `clang-tidy-18`），找不到才回退到无后缀的 `clang-format` / `clang-tidy`。lint 固定 clang-tidy 18（理由见下文「CI」一节），装了 `clang-tidy-18` 即可，无需手动设 ENV；强制走别的二进制再用 `CLANG_TIDY=... rake lint`。Ceedling 经 `RbConfig.ruby + -S` 调用，避开 Windows 的 .bat shim 寻路问题。
 
 直接调 `ceedling`/`clang-format`/`clang-tidy` 仍然合法——Rakefile 只是聚合常用工作流，不绕开 ceedling。
 

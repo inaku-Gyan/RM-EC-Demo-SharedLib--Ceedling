@@ -6,5 +6,24 @@
     "--header-insertion=iwyu",
     "--header-insertion-decorators"
   ],
-  "C_Cpp.intelliSenseEngine": "disabled"
+  "C_Cpp.intelliSenseEngine": "disabled",
+  "[c]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  },
+  "[cpp]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  },
+  "yaml.schemas": {
+    "https://www.schemastore.org/clang-tidy.json": ".clang-tidy",
+    "https://www.schemastore.org/clang-format-18.x.json": ".clang-format"
+  },
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "settings.example.json",
+        "settings.json",
+      ],
+      "url": "vscode://schemas/settings/user"
+    }
+  ],
 }
