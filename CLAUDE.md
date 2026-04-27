@@ -219,13 +219,13 @@ float sl_filter_dot(const float *a, const float *b, uint32_t n) {
 | `rake fmt`        | `clang-format --dry-run --Werror`（CI 用）                   |
 | `rake fmt:fix`    | `clang-format -i` 批量应用                                   |
 | `rake compile_db` | 清空旧 DB → `ceedling test:all --mixin all_on` 全量编译      |
-| `rake lint`       | 自动 `compile_db` → `clang-tidy-22 -p build/artifacts ...`   |
+| `rake lint`       | 自动 `compile_db` → `clang-tidy -p build/artifacts ...`      |
 | `rake test`       | CI 测试矩阵（pure / rtos+hal_f4 / rtos+dsp+hal_h7 / all_on） |
 | `rake coverage`   | 清 `build/gcov` → `ceedling gcov:all --mixin all_on`         |
 | `rake ci`         | fmt + lint + test + coverage（CI workflow 调用此项）         |
 | `rake clean`      | 删 `build/`                                                  |
 
-工具二进制名走 ENV：`CLANG_FORMAT` / `CLANG_TIDY` 可覆盖（默认 `clang-format` / `clang-tidy-22`）。Ceedling 经 `RbConfig.ruby + -S` 调用，避开 Windows 的 .bat shim 寻路问题。
+工具二进制名走 ENV：`CLANG_FORMAT` / `CLANG_TIDY` 可覆盖（默认 `clang-format` / `clang-tidy`）。lint 固定 clang-tidy 18（理由见下文「CI」一节）；若系统默认是别的版本，本地用 `CLANG_TIDY=clang-tidy-18 rake lint` 指定。Ceedling 经 `RbConfig.ruby + -S` 调用，避开 Windows 的 .bat shim 寻路问题。
 
 直接调 `ceedling`/`clang-format`/`clang-tidy` 仍然合法——Rakefile 只是聚合常用工作流，不绕开 ceedling。
 
@@ -303,11 +303,11 @@ CI 在 `all_on` 上跑 `ceedling gcov:all`，把生成的 HTML 报告作为 arti
 
 1. **fmt**（`rake fmt`）：`clang-format --dry-run --Werror`，仓库根 [.clang-format](.clang-format) 锁定风格（基于 LLVM；4 空格缩进；列宽 100；嵌套在 `#if` 内的预编译指令缩进 `IndentPPDirectives: BeforeHash`；`SortIncludes: Never` 保护 IWYU/vendor 顺序）。
    注：clang-format 仅缩进 `#if` 内的**预编译指令**（如 `#include`/嵌套 `#if`）；`#if` 块内的普通 C 代码不会因 PP 嵌套而额外缩进——这是 clang-format 的固有限制。
-2. **lint**（`rake lint`）：先依赖 `:compile_db` 刷新 `build/artifacts/compile_commands.json`（用 `--mixin all_on`），再用 `clang-tidy-22` 严格规则集扫描（启用 `bugprone-*`, `cert-*`, `misc-*`, `portability-*`, `readability-*`）。仓库根 [.clang-tidy](.clang-tidy) 锁定，`WarningsAsErrors: '*'` 严格。允许的 disable 必须在文件内 `// NOLINT(check-name)` 标注理由。
-   **clang-tidy 22 已知限制**：
-   - `readability-identifier-naming` 移除了 `StaticFunctionCase`/`StaticFunctionPrefix` 与 `*Pattern` 选项，`FunctionPrefix` 会同时套到 static 函数上。本仓库的 `sl_` 前缀策略（公共 API 加、static 内部不加）因此**不在 clang-tidy 强制范围内**——靠约定与 code review 保证。
+2. **lint**（`rake lint`）：先依赖 `:compile_db` 刷新 `build/artifacts/compile_commands.json`（用 `--mixin all_on`），再用 `clang-tidy 18` 严格规则集扫描（启用 `bugprone-*`, `cert-*`, `misc-*`, `portability-*`, `readability-*`）。仓库根 [.clang-tidy](.clang-tidy) 锁定，`WarningsAsErrors: '*'` 严格。允许的 disable 必须在文件内 `// NOLINT(check-name)` 标注理由。
+   **lint 版本约束**：固定 clang-tidy 18。19+ 在 `readability-identifier-naming` 移除了 `StaticFunctionCase`/`StaticFunctionPrefix` 与 `*Pattern` 等粒度选项——本仓库的命名约定（公共 API 必须 `sl_*`，static 内部无前缀）依赖这些选项才能在 lint 层强制；用更新版本会丢掉这部分检查能力。
+   **未支持的检查**：
    - 不报警「未生效的 IWYU pragma」（需 include-what-you-use 工具本身，不在依赖中）。
-   - 不报警「未生效的 NOLINT 注释」（LLVM 22 仍未内建该检查）。
+   - 不报警「未生效的 NOLINT 注释」（LLVM 18/22 都不内建该检查）。
 3. **test**（`rake test`）：上述 mixin 组合全部跑，含 `all_on`。
 4. **coverage**（`rake coverage`）：清 `build/gcov` → `ceedling gcov:all --mixin all_on`，HTML 报告做 artifact。
 

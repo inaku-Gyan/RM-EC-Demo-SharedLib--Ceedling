@@ -5,7 +5,7 @@
 #   - 用 `system` / `sh` 数组形式，绝不字符串拼 shell 命令
 #   - 文件查找用 Dir.glob，不调 POSIX `find`
 #   - ceedling 经 `RbConfig.ruby` + `-S` 调用，避开 Windows 的 .bat shim 与 PATH 差异
-#   - 工具二进制名（clang-tidy-22 等）走 ENV，方便不同发行版/包管理器覆盖
+#   - 工具二进制名（clang-tidy 等）走 ENV，方便不同发行版/包管理器覆盖
 
 require 'fileutils'
 require 'rbconfig'
@@ -13,7 +13,7 @@ require 'rake/clean'
 
 # ---------- 工具与路径 ----------
 CLANG_FORMAT   = ENV.fetch('CLANG_FORMAT', 'clang-format')
-CLANG_TIDY     = ENV.fetch('CLANG_TIDY',   'clang-tidy-22')
+CLANG_TIDY     = ENV.fetch('CLANG_TIDY',   'clang-tidy')
 SOURCE_GLOBS   = %w[src/**/*.c src/**/*.h config/**/*.c config/**/*.h].freeze
 COMPILE_DB     = 'build/artifacts/compile_commands.json'
 COMPLETE_MIXIN = 'all_on'

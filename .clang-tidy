@@ -1,4 +1,4 @@
-# EC-Shared-Lib clang-tidy 严格规则集（按 clang-tidy 22 校准）
+# EC-Shared-Lib clang-tidy 严格规则集（按 clang-tidy 18 校准）
 # 启用 CLAUDE.md 中列出的全部检查类。每个手动 disable 的项必须在下方写明理由。
 # 文件内单点屏蔽用 // NOLINT(check-name) 并附理由注释。
 
@@ -10,8 +10,6 @@ Checks: >
   readability-*,
   -bugprone-easily-swappable-parameters,
   -misc-no-recursion,
-  -misc-use-internal-linkage,
-  -portability-avoid-pragma-once,
   -readability-function-cognitive-complexity,
   -readability-identifier-length,
   -readability-magic-numbers,
@@ -21,10 +19,6 @@ Checks: >
 # Disable 理由：
 #   bugprone-easily-swappable-parameters: 控制器/滤波器接口天然多 float 形参，无法避免
 #   misc-no-recursion:                    嵌入式代码极少递归；偶尔用到时不应一概禁止
-#   misc-use-internal-linkage:            Unity test_* 函数由生成的 runner 跨 TU 调用，
-#                                         clang-tidy 看不到该调用导致误报；库 API 通过
-#                                         头文件声明已正确识别为外部使用，故无收益
-#   portability-avoid-pragma-once:        本仓库统一使用 #pragma once（见 CLAUDE.md 命名表）
 #   readability-function-cognitive-complexity: PID/滤波等数学例程认知复杂度天然偏高
 #   readability-identifier-length:        a/b/n/i 等数学/循环短变量符合惯例
 #   readability-magic-numbers:            硬件寄存器值/通信协议常量大量出现
@@ -39,11 +33,12 @@ FormatStyle: file
 
 CheckOptions:
   # readability-identifier-naming：与 CLAUDE.md 命名约定对齐
-  # 函数仅强制 lower_case；sl_ 前缀（公共 API）/无前缀（static 内部）的区分由
-  # 约定 + code review 保证——clang-tidy 22 已移除 StaticFunctionCase/StaticFunctionPrefix
-  # 等粒度选项，FunctionPrefix 会同时套到 static 函数上，与本仓库约定冲突。
-  readability-identifier-naming.FunctionCase: lower_case
-  readability-identifier-naming.FunctionIgnoredRegexp: '^(setUp|tearDown|main)$'
+  # 全局函数：库 API 必须 sl_*；测试用例必须 test_*；Unity 框架要求 setUp/tearDown
+  readability-identifier-naming.GlobalFunctionPattern: '^(sl|test)_[a-z][a-z0-9_]*$|^(setUp|tearDown)$'
+
+  # static 函数无前缀，snake_case（与公共 API 区分；clang-tidy 18 支持此粒度）
+  readability-identifier-naming.StaticFunctionCase: lower_case
+  readability-identifier-naming.StaticFunctionPrefix: ''
 
   # 变量
   readability-identifier-naming.VariableCase: lower_case
@@ -58,8 +53,7 @@ CheckOptions:
   readability-identifier-naming.EnumCase: lower_case
 
   # 宏：SL_ 前缀 + 全大写
-  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
-  readability-identifier-naming.MacroDefinitionPrefix: 'SL_'
+  readability-identifier-naming.MacroDefinitionPattern: '^SL_[A-Z][A-Z0-9_]*$'
 
   # 函数体大括号一律加（与 .clang-format 的 InsertBraces 保持一致）
   readability-braces-around-statements.ShortStatementLines: 0
