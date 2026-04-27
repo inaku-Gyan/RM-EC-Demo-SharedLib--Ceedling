@@ -1,5 +1,5 @@
 ---
-# dsp: enable CMSIS-DSP accelerated paths.
+# dsp：启用 CMSIS-DSP 加速路径。
 :defines:
   :test:
     - SL_USE_ARM_DSP=1

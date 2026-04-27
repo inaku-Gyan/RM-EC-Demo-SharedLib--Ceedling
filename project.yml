@@ -13,7 +13,7 @@
 
   # optional features. If you don't need them, keep them turned off for performance
   :use_mocks: TRUE
-  :use_test_preprocessor: :tests # honor #if guards when scanning test files (mixin-driven feature toggles)
+  :use_test_preprocessor: :tests # 让 Ceedling 在扫描测试文件时遵守 #if 守卫（依赖 mixin 注入的功能开关）
   :use_deep_preprocessor: :none  # options are :none, :mocks, :tests, or :all
   :use_backtrace: :simple        # options are :none, :simple, or :gdb
   :use_decorators: :auto         # decorate Ceedling's output text. options are :auto, :all, or :none
@@ -57,10 +57,10 @@
   :enabled:
     #- beep                           # beeps when finished, so you don't waste time waiting for ceedling
     - module_generator                # handy for quickly creating source, header, and test templates
-    - gcov                            # coverage via gcc/gcov + gcovr (run with `ceedling gcov:all`)
+    - gcov                            # 用 gcc/gcov + gcovr 收集覆盖率（用 `ceedling gcov:all` 触发）
     #- bullseye                       # test coverage using bullseye. Requires bullseye for your platform
     #- command_hooks                  # write custom actions to be called at different points during the build process
-    - compile_commands_json_db        # generate compile_commands.json for clangd / IDEs
+    - compile_commands_json_db        # 生成 compile_commands.json 供 clangd / IDE 使用
     #- dependencies                   # automatically fetch 3rd party libraries, etc.
     #- subprojects                    # managing builds and test for static libraries
     #- fake_function_framework        # use FFF instead of CMock
@@ -101,13 +101,12 @@
     - +:test/**
     - -:test/support
     - -:test/mixins
-    - +:src/**       # tests live next to the module they exercise
+    - +:src/**       # 测试文件紧邻被测模块
   :source:
     - src/**
   :include:
     - src/**
-    - config         # sl_config_default.h
-    - test/support   # sl_config.h shim used by in-repo tests
+    - config         # 库内 internal.h / sl_config_default.h
   :support:
     - test/support
   :libraries: []
@@ -204,7 +203,7 @@
 
 # Configuration options specific to Unity.
 :unity:
-  :defines: []   # float assertions enabled (PID / filter rely on them)
+  :defines: []   # 不剥离浮点断言，PID / filter 依赖 TEST_ASSERT_FLOAT_*
 
 # You can optionally have ceedling create environment variables for you before
 # performing the rest of its tasks.

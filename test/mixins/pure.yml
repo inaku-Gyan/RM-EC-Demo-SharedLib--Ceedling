@@ -1,7 +1,6 @@
 ---
-# pure: no external deps; only algorithm-layer code is exercised.
-# All SL_USE_* knobs default to 0 in sl_config_default.h, so this mixin
-# only needs to tag the build.
+# pure：不开任何外部依赖，只测算法层。
+# sl_config_default.h 里所有 SL_USE_* 默认就是 0，本 mixin 只打个标签。
 :defines:
   :test:
     - SL_PROFILE_PURE=1

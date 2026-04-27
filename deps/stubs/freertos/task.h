@@ -1,7 +1,7 @@
 #pragma once
 
-/* Scaffold stub: critical-section macros are no-ops on the host so unit tests
- * can run. Real targets override SL_FREERTOS_TASK_INCLUDE to the vendor header. */
+/* 测试期 FreeRTOS 桩头：临界区宏在 host 上是 no-op，让单元测试可链接执行。
+ * 真实目标会把 SL_FREERTOS_TASK_INCLUDE 指向 vendor 的 task.h。 */
 
 #define taskENTER_CRITICAL() do {} while (0)
 #define taskEXIT_CRITICAL()  do {} while (0)

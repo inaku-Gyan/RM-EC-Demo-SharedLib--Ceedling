@@ -1,18 +1,17 @@
 #pragma once
 
 /* ============================================================================
- *  EC-Shared-Lib default configuration — user-tunable knobs only.
+ *  EC-Shared-Lib 默认配置——只放「用户可调」的开关与路径，不放任何
+ *  库内部派生的宏。
  *
- *  Downstream "sl_config.h" provided by the business repo may #define entries
- *  before #including this file to override; the #ifndef guards below preserve
- *  those overrides. Do not add anything here that is NOT meant for the user
- *  to set — internal/derived macros belong in sl_config_internal.h.
+ *  业务方在编译时通过 -DSL_USER_CONFIG=\"path/to/header.h\" 指定自己的
+ *  配置头，对感兴趣的项做 #define；config/internal.h 会先 #include 业务
+ *  配置、再 #include 本文件，下方每条 #ifndef 守卫保留业务方覆写。
  *
- *  Library code MUST NOT include this header directly — go through
- *  sl_config_internal.h instead.
+ *  库代码绝不直接 #include 本文件——必须经由 config/internal.h 间接拿到。
  * ============================================================================ */
 
-/* ----- Feature switches: 0 = off, 1 = on ---------------------------------- */
+/* ----- 功能开关：0 = 关闭，1 = 启用 -------------------------------------- */
 
 #ifndef SL_USE_FREERTOS
 #define SL_USE_FREERTOS 0
@@ -26,7 +25,7 @@
 #define SL_USE_HAL 0
 #endif
 
-/* ----- HAL version selectors (only meaningful when SL_USE_HAL = 1) -------- */
+/* ----- HAL 版本选择（仅当 SL_USE_HAL=1 时有意义） -------------------------- */
 
 #ifndef SL_HAL_VERSION_F4
 #define SL_HAL_VERSION_F4 0
@@ -36,9 +35,9 @@
 #define SL_HAL_VERSION_H7 0
 #endif
 
-/* ----- External dependency include paths ---------------------------------- *
- *  Override these to point at your vendor headers. Library code never
- *  references SL_*_INCLUDE directly — sl_config_internal.h consumes them.
+/* ----- 外部依赖头文件路径 ------------------------------------------------- *
+ *  让业务方告诉库去哪里 #include vendor 头。库代码绝不直接引用 SL_*_INCLUDE，
+ *  由 try_*.h / require_*.h 在 #if 里使用。
  * -------------------------------------------------------------------------- */
 
 #ifndef SL_FREERTOS_INCLUDE

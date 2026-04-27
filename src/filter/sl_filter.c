@@ -1,5 +1,9 @@
+#include "../../config/internal.h"
 #include "sl_filter.h"
-#include "sl_config_internal.h" // IWYU pragma: keep — provides SL_USE_ARM_DSP and arm_math symbols
+
+#if SL_USE_ARM_DSP
+#include SL_ARM_MATH_INCLUDE
+#endif
 
 float sl_filter_dot(const float *a, const float *b, uint32_t n) {
 #if SL_USE_ARM_DSP

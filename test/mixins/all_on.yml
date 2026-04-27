@@ -1,8 +1,7 @@
 ---
-# all_on: every SL_USE_* knob enabled. Purpose is *syntax coverage* — ensures
-# every #if-guarded code path compiles. Not necessarily a realistic business
-# config. CI must run this so guards don't quietly bit-rot.
-# Uses the F4 HAL stub (default SL_HAL_INCLUDE).
+# all_on：所有 SL_USE_* 全开。目的是「语法兜底」——让所有 #if 分支都被
+# 编译到，避免 case 1 / case 2 文件中的代码偷偷 bit-rot。不必对应真实业务
+# 配置。CI 必跑。HAL 用 F4 默认值。
 :defines:
   :test:
     - SL_USE_FREERTOS=1

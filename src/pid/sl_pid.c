@@ -1,5 +1,6 @@
 #include "sl_pid.h"
 
+/* 对称限幅：limit<=0 时直接放行 */
 static float clamp_symmetric(float v, float limit) {
     if (limit <= 0.0f) {
         return v;

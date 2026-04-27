@@ -1,7 +1,6 @@
 ---
-# hal_f4: STM32F4 HAL. Pulls the F4 stub header at deps/stubs/hal_f4 so the
-# default SL_HAL_INCLUDE ("stm32f4xx_hal.h") resolves in tests. Real builds
-# repoint via business-side sl_config.h.
+# hal_f4：STM32F4 HAL。挂上 deps/stubs/hal_f4，让默认 SL_HAL_INCLUDE
+# ("stm32f4xx_hal.h") 能解析到。真实工程由业务方 sl_config.h 重新指向。
 :defines:
   :test:
     - SL_USE_HAL=1

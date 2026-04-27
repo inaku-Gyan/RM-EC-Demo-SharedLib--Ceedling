@@ -1,17 +1,15 @@
-#include "sl_config_internal.h" // IWYU pragma: keep — provides SL_USE_FREERTOS used in #if below
+#include "../../config/internal.h" // IWYU pragma: keep — 提供 SL_USE_FREERTOS
 #include "unity.h"
-#include "sl_motor_dji.h"       // hoisted out of #if so Ceedling's source-file
-                                // discovery sees it and links sl_motor_dji.c
+#include "sl_motor_dji.h"
 
-/* Case-1 source: only attach sl_motor_dji_rtos.c to the build when its
- * dependency is actually enabled. Outside #if SL_USE_FREERTOS, the rtos TU
- * would #error during compile. */
+/* sl_motor_dji_rtos.c 是 case-1 文件——只在 SL_USE_FREERTOS=1 时挂入构建。
+ * 把 TEST_SOURCE_FILE 关进 #if 内，否则非 RTOS mixin 也会编译那个 .c 而触发 #error。 */
 #if SL_USE_FREERTOS
 TEST_SOURCE_FILE("sl_motor_dji_rtos.c")
 #endif
 
-/* setUp/tearDown live outside the guard so the test runner always links,
- * even under mixins that strip every test case in this file. */
+/* setUp / tearDown 放在文件级 #if 之外，否则 mixin 把所有用例都门卫掉时
+ * runner 仍引用这两个符号，链接失败。 */
 void setUp(void) {}
 void tearDown(void) {}
 

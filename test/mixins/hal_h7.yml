@@ -1,6 +1,5 @@
 ---
-# hal_h7: STM32H7 HAL. Overrides SL_HAL_INCLUDE since H7's master header has a
-# different name from F4's default.
+# hal_h7：STM32H7 HAL。H7 主头名与 F4 不同，需覆盖 SL_HAL_INCLUDE。
 :defines:
   :test:
     - SL_USE_HAL=1

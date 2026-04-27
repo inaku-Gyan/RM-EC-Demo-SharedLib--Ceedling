@@ -4,8 +4,8 @@ typedef struct {
     float kp;
     float ki;
     float kd;
-    float i_limit;   /* 0 disables integral clamp */
-    float out_limit; /* 0 disables output clamp */
+    float i_limit;   /* 积分限幅；0 表示不限 */
+    float out_limit; /* 输出限幅；0 表示不限 */
 } sl_pid_config_t;
 
 typedef struct {
