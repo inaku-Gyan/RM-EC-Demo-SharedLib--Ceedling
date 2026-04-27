@@ -8,8 +8,10 @@
 #   - 工具二进制名（clang-tidy 等）走 ENV，方便不同发行版/包管理器覆盖
 
 require 'fileutils'
+require 'open3'
 require 'rbconfig'
 require 'rake/clean'
+require 'rubygems'
 
 # ---------- 工具与路径 ----------
 CLANG_FORMAT   = ENV.fetch('CLANG_FORMAT', 'clang-format')
@@ -26,6 +28,14 @@ TEST_MATRIX = [
   %w[all_on]
 ].freeze
 
+# ---------- 工具版本约束 ----------
+# 用 Gem::Requirement 语法（'~> 18.0' = '>= 18.0, < 19.0'）。
+# 紧急绕过：SKIP_VERSION_CHECK=1 rake ...
+REQUIRE_RUBY         = '>= 3.0.0'
+REQUIRE_CEEDLING     = '>= 1.0.0'
+REQUIRE_CLANG_FORMAT = '>= 15.0.0' # IndentPPDirectives + PPIndentWidth + InsertBraces 需要 15+
+REQUIRE_CLANG_TIDY   = '~> 18.0'   # 锁 18.x：19+ 移除了 StaticFunctionCase / *Pattern 命名选项
+
 CLEAN.include 'build'
 
 # ---------- 辅助 ----------
@@ -40,37 +50,90 @@ def ceedling(*args)
   sh RbConfig.ruby, '-S', 'ceedling', *args
 end
 
-# ---------- 任务 ----------
+# 调 `<cmd> <args...>`，从 stdout 抽出第一个 X.Y.Z；找不到 cmd / 抽不到版本都 abort
+def detect_version(cmd, *args)
+  out, _err, status = Open3.capture3(cmd, *args)
+  abort "[版本检查] 调用失败：#{cmd} #{args.join(' ')} (exit #{status.exitstatus})" unless status.success?
+  out[/(\d+\.\d+\.\d+)/, 1] or abort "[版本检查] 无法从输出抽取版本：#{cmd}\n输出:\n#{out}"
+rescue Errno::ENOENT
+  abort "[版本检查] 未找到 `#{cmd}` ——请确认已安装并在 PATH 中"
+end
+
+# 版本断言：SKIP_VERSION_CHECK=1 时连 yield 都不调用，整段跳过
+def assert_version!(label, requirement, note:)
+  return if ENV['SKIP_VERSION_CHECK']
+  actual = yield
+  return if Gem::Requirement.new(requirement).satisfied_by?(Gem::Version.new(actual))
+  abort <<~MSG
+    [版本检查失败] #{label}
+      实际: #{actual}
+      要求: #{requirement}
+      原因: #{note}
+      绕过: SKIP_VERSION_CHECK=1 rake ...
+  MSG
+end
+
+# ---------- 版本检查 task ----------
+task :check_ruby do
+  assert_version!('ruby', REQUIRE_RUBY,
+                  note: 'Ceedling 1.0+ 要求 Ruby 3.0+') { RUBY_VERSION }
+end
+
+task check_ceedling: :check_ruby do
+  assert_version!('ceedling', REQUIRE_CEEDLING,
+                  note: '本仓库依赖 Ceedling 1.0+ 的 plugin API、mixin 机制与 use_test_preprocessor:tests') do
+    detect_version(RbConfig.ruby, '-S', 'ceedling', 'version')
+  end
+end
+
+task :check_clang_format do
+  assert_version!('clang-format', REQUIRE_CLANG_FORMAT,
+                  note: 'IndentPPDirectives + PPIndentWidth + InsertBraces 需要 15+') do
+    detect_version(CLANG_FORMAT, '--version')
+  end
+end
+
+task :check_clang_tidy do
+  assert_version!('clang-tidy', REQUIRE_CLANG_TIDY,
+                  note: 'clang-tidy 19+ 移除了 StaticFunctionCase/*Pattern 命名选项；本仓库锁 18.x') do
+    detect_version(CLANG_TIDY, '--version')
+  end
+end
+
+desc '一次性检查全部工具版本（Ruby / Ceedling / clang-format / clang-tidy）'
+task check_tools: %i[check_ruby check_ceedling check_clang_format check_clang_tidy]
+
+# ---------- 主任务 ----------
 task default: :test
 
 desc 'CI 全套：fmt + lint + test + coverage'
 task ci: %i[fmt lint test coverage]
 
 desc 'clang-format 检查（不修改文件，CI 默认）'
-task :fmt do
+task fmt: :check_clang_format do
   sh CLANG_FORMAT, '--dry-run', '--Werror', *source_files
 end
 
 namespace :fmt do
   desc 'clang-format in-place 应用'
-  task :fix do
+  task fix: :check_clang_format do
     sh CLANG_FORMAT, '-i', *source_files
   end
 end
 
 desc "刷新 #{COMPILE_DB}（清空旧 DB 后用 --mixin #{COMPLETE_MIXIN} 全量编译）"
-task :compile_db do
+task compile_db: :check_ceedling do
   FileUtils.rm_f COMPILE_DB
   ceedling 'test:all', '--mixin', COMPLETE_MIXIN
 end
 
 desc 'clang-tidy 严格检查（自动刷新 compile_commands.json）'
-task lint: :compile_db do
+task lint: %i[check_clang_tidy compile_db] do
   sh CLANG_TIDY, '-p', 'build/artifacts', *source_files
 end
 
 desc 'CI 测试矩阵：pure / rtos+hal_f4 / rtos+dsp+hal_h7 / all_on'
-task :test do
+task test: :check_ceedling do
   TEST_MATRIX.each do |mixins|
     args = mixins.flat_map { |m| ['--mixin', m] }
     puts "\n>>> ceedling test:all #{args.join(' ')}"
@@ -79,7 +142,7 @@ task :test do
 end
 
 desc "覆盖率：ceedling gcov:all --mixin #{COMPLETE_MIXIN}"
-task :coverage do
+task coverage: :check_ceedling do
   # 清掉旧 .gcda 防止 libgcov "overwriting profile data with a different checksum"
   FileUtils.rm_rf 'build/gcov'
   ceedling 'gcov:all', '--mixin', COMPLETE_MIXIN
