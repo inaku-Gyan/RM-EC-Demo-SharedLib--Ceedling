@@ -9,7 +9,8 @@
  *  配置、再 #include 本文件，下方每条 #ifndef 守卫保留业务方覆写。
  *
  *  库代码绝不直接 #include 本文件——必须经由 config/internal.h 间接拿到。
- * ============================================================================ */
+ * ============================================================================
+ */
 
 /* ----- 功能开关：0 = 关闭，1 = 启用 -------------------------------------- */
 
@@ -25,7 +26,7 @@
 #define SL_USE_HAL 0
 #endif
 
-/* ----- HAL 版本选择（仅当 SL_USE_HAL=1 时有意义） -------------------------- */
+/* ----- HAL 版本选择（仅当 SL_USE_HAL=1 时有意义） ------------------ */
 
 #ifndef SL_HAL_VERSION_F4
 #define SL_HAL_VERSION_F4 0
@@ -36,22 +37,39 @@
 #endif
 
 /* ----- 外部依赖头文件路径 ------------------------------------------------- *
- *  让业务方告诉库去哪里 #include vendor 头。库代码绝不直接引用 SL_*_INCLUDE，
- *  由 try_*.h / require_*.h 在 #if 里使用。
+ *  让业务方告诉库去哪里 #include vendor 头。
  * -------------------------------------------------------------------------- */
 
+#if SL_USE_FREERTOS
+
 #ifndef SL_INCLUDE_FREERTOS
-#define SL_INCLUDE_FREERTOS      "FreeRTOS.h"
+#define SL_INCLUDE_FREERTOS "FreeRTOS.h"
 #endif
 
 #ifndef SL_INCLUDE_FREERTOS_TASK
 #define SL_INCLUDE_FREERTOS_TASK "task.h"
 #endif
 
-#ifndef SL_INCLUDE_ARM_MATH
-#define SL_INCLUDE_ARM_MATH      "arm_math.h"
+#else // 关闭 FreeRTOS 时不应定义相关路径
+
+#ifdef SL_INCLUDE_FREERTOS
+#error "SL_USE_FREERTOS = 0 时不应定义 SL_INCLUDE_FREERTOS"
 #endif
 
-#ifndef SL_INCLUDE_HAL
-#define SL_INCLUDE_HAL           "stm32f4xx_hal.h"
+#ifdef SL_INCLUDE_FREERTOS_TASK
+#error "SL_USE_FREERTOS = 0 时不应定义 SL_INCLUDE_FREERTOS_TASK"
+#endif
+
+#endif // SL_USE_FREERTOS
+
+#if SL_USE_ARM_DSP && !defined(SL_INCLUDE_ARM_MATH)
+#define SL_INCLUDE_ARM_MATH "arm_math.h"
+#elif !SL_USE_ARM_DSP && defined(SL_INCLUDE_ARM_MATH)
+#error "SL_USE_ARM_DSP = 0 时不应定义 SL_INCLUDE_ARM_MATH"
+#endif
+
+#if SL_USE_HAL && !defined(SL_INCLUDE_HAL)
+#define SL_INCLUDE_HAL "stm32f4xx_hal.h"
+#elif !SL_USE_HAL && defined(SL_INCLUDE_HAL)
+#error "SL_USE_HAL = 0 时不应定义 SL_INCLUDE_HAL"
 #endif
