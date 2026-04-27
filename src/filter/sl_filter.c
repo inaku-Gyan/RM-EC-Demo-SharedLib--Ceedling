@@ -2,7 +2,7 @@
 #include "sl_filter.h"
 
 #if SL_USE_ARM_DSP
-#include SL_ARM_MATH_INCLUDE
+#include SL_INCLUDE_ARM_MATH
 #endif
 
 float sl_filter_dot(const float *a, const float *b, uint32_t n) {

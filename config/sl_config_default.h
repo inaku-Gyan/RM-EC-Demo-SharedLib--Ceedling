@@ -40,18 +40,18 @@
  *  由 try_*.h / require_*.h 在 #if 里使用。
  * -------------------------------------------------------------------------- */
 
-#ifndef SL_FREERTOS_INCLUDE
-#define SL_FREERTOS_INCLUDE      "FreeRTOS.h"
+#ifndef SL_INCLUDE_FREERTOS
+#define SL_INCLUDE_FREERTOS      "FreeRTOS.h"
 #endif
 
-#ifndef SL_FREERTOS_TASK_INCLUDE
-#define SL_FREERTOS_TASK_INCLUDE "task.h"
+#ifndef SL_INCLUDE_FREERTOS_TASK
+#define SL_INCLUDE_FREERTOS_TASK "task.h"
 #endif
 
-#ifndef SL_ARM_MATH_INCLUDE
-#define SL_ARM_MATH_INCLUDE      "arm_math.h"
+#ifndef SL_INCLUDE_ARM_MATH
+#define SL_INCLUDE_ARM_MATH      "arm_math.h"
 #endif
 
-#ifndef SL_HAL_INCLUDE
-#define SL_HAL_INCLUDE           "stm32f4xx_hal.h"
+#ifndef SL_INCLUDE_HAL
+#define SL_INCLUDE_HAL           "stm32f4xx_hal.h"
 #endif

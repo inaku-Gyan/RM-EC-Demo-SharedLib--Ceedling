@@ -8,7 +8,7 @@ RoboMaster 多个 C 嵌入式项目共用的源码库。仅有 test 目标，不
 
 1. **库代码在业务仓库中只读**。业务方不能修改本仓库代码，所有差异化必须通过覆写 config 实现。任何"靠业务方改一行库代码就行"的方案都不可接受。
 2. **公共 API 一律 `sl_` 前缀**（shared lib）。函数/类型用 snake_case (`sl_pid_init`, `sl_pid_t`)；宏用 `SL_` 前缀的 UPPER_SNAKE (`SL_USE_FREERTOS`)。文件内 `static` 标识符不需要前缀。
-3. **外部依赖路径由宏配置**，不写死。库代码绝不出现 `#include "FreeRTOS.h"`，必须 `#include SL_FREERTOS_INCLUDE`（路径名由业务 / mixin 覆盖）。每个源文件**自己**用 `#if SL_USE_X` 决定要不要拉 vendor 头——library 不做"一股脑" auto-include。
+3. **外部依赖路径由宏配置**，不写死。库代码绝不出现 `#include "FreeRTOS.h"`，必须 `#include SL_INCLUDE_FREERTOS`（路径名由业务 / mixin 覆盖）。每个源文件**自己**用 `#if SL_USE_X` 决定要不要拉 vendor 头——library 不做"一股脑" auto-include。
 4. **不向后兼容默认未定义的宏**。每个 `SL_*` 宏都必须在 [config/sl_config_default.h](config/sl_config_default.h) 有默认值；库代码可以直接 `#if` 使用而不需先做 `#ifndef ... #define ... #endif` 兜底。
 5. **库代码绝不直接 `#include "sl_config_default.h"`**——必须经由 [config/internal.h](config/internal.h) 拿到 `SL_*` 宏。`sl_config_default.h` 只承载用户可调的配置项；派生宏 / sanity check 集中到 `internal.h`。
 6. **业务方覆写通过 `-DSL_USER_CONFIG=\"path/to/header.h\"`**。不用约定 include path、不放 shim 文件——业务在编译命令里给一个宏指向自己的配置头，[config/internal.h](config/internal.h) 在最前面 `#include SL_USER_CONFIG` 拉它。这样我们不必猜业务的 include path 布局。
@@ -55,7 +55,7 @@ project.yml                   # Ceedling 主配置
 | 公共函数    | `sl_<module>_<verb>`                                 | `sl_pid_update`                     |
 | 公共类型    | `sl_<module>_t` / `sl_<module>_<noun>_t`             | `sl_pid_t`, `sl_pid_config_t`       |
 | 公共宏      | `SL_<MODULE>_<NAME>`                                 | `SL_PID_MAX_INTEGRAL`               |
-| 配置宏      | `SL_USE_<DEP>` / `SL_<DEP>_INCLUDE`                  | `SL_USE_FREERTOS`, `SL_HAL_INCLUDE` |
+| 配置宏      | `SL_USE_<DEP>` / `SL_<DEP>_INCLUDE`                  | `SL_USE_FREERTOS`, `SL_INCLUDE_HAL` |
 | 文件名      | `sl_<module>.{c,h}`, `test_sl_<module>.c`            | `sl_pid.h`                          |
 | 内部 static | 无前缀，snake_case                                   | `static void clamp(...)`            |
 | 头文件防重  | **`#pragma once`**（不再使用 `#ifndef ... #define`） | 所有 `.h` 都用                      |
@@ -106,11 +106,11 @@ sl_config_default.h       # 库内默认值，#ifndef 守卫保留业务覆写
 
 **vendor 头路径**——告诉库去哪里 include：
 ```c
-#ifndef SL_FREERTOS_INCLUDE
-#define SL_FREERTOS_INCLUDE      "FreeRTOS.h"
+#ifndef SL_INCLUDE_FREERTOS
+#define SL_INCLUDE_FREERTOS      "FreeRTOS.h"
 #endif
-#ifndef SL_HAL_INCLUDE
-#define SL_HAL_INCLUDE           "stm32f4xx_hal.h"
+#ifndef SL_INCLUDE_HAL
+#define SL_INCLUDE_HAL           "stm32f4xx_hal.h"
 #endif
 /* …类似 */
 ```
@@ -143,8 +143,8 @@ sl_config_default.h       # 库内默认值，#ifndef 守卫保留业务覆写
 
 #if SL_USE_FREERTOS
 
-#include SL_FREERTOS_INCLUDE      // IWYU pragma: keep — FreeRTOS 要求本头先于其他 FreeRTOS 头
-#include SL_FREERTOS_TASK_INCLUDE
+#include SL_INCLUDE_FREERTOS      // IWYU pragma: keep — FreeRTOS 要求本头先于其他 FreeRTOS 头
+#include SL_INCLUDE_FREERTOS_TASK
 #include "sl_motor_dji.h"
 
 int16_t sl_motor_dji_get_speed_threadsafe(...) {
@@ -190,7 +190,7 @@ void test_xxx(void) { ... }
 #include "sl_filter.h"
 
 #if SL_USE_ARM_DSP
-#include SL_ARM_MATH_INCLUDE
+#include SL_INCLUDE_ARM_MATH
 #endif
 
 float sl_filter_dot(const float *a, const float *b, uint32_t n) {
@@ -263,7 +263,7 @@ CompileFlags:
 2. **`#include` 必须在顶层，不能在 `#if` 里**。Ceedling 的源文件发现器扫描原始（未预处理）文件，把 `#include "sl_motor_dji.h"` 反推到 `sl_motor_dji.c`。如果把 include 放进 `#if SL_USE_FREERTOS`，Ceedling 看不到 → 不会编译/链接对应 `.c`，链接报缺符号。
 3. **多 `.c` 模块用 `TEST_SOURCE_FILE` 显式拉源文件**。`sl_motor_dji.h` 触发不了 `sl_motor_dji_rtos.c` 的拉取，要在测试文件顶部声明 `TEST_SOURCE_FILE("sl_motor_dji_rtos.c")`。Case-1 文件需把这条声明也包在 `#if` 里，避免无依赖时被强行编译触发 `#error`。
 4. **`setUp` / `tearDown` 必须放在文件级 `#if` 之外**。否则 mixin 把所有测试都门卫掉时，runner 仍会引用这两个符号，链接失败。文件级门卫的测试模板：顶层 `#include` + 顶层空 `setUp/tearDown`，测试用例在 `#if` 里。
-5. **mixin `:defines:` 中字符串值要 `\"escaped\"`**。例：`SL_HAL_INCLUDE=\"stm32h7xx_hal.h\"`。单引号 YAML 包整串无法穿过 Ceedling 的 shell 装配。
+5. **mixin `:defines:` 中字符串值要 `\"escaped\"`**。例：`SL_INCLUDE_HAL=\"stm32h7xx_hal.h\"`。单引号 YAML 包整串无法穿过 Ceedling 的 shell 装配。
 
 ## 覆盖率（gcov / gcovr）
 

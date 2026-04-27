@@ -4,8 +4,8 @@
 
 #if SL_USE_FREERTOS
 
-#include SL_FREERTOS_INCLUDE      // IWYU pragma: keep — FreeRTOS 要求本头先于其他 FreeRTOS 头出现
-#include SL_FREERTOS_TASK_INCLUDE
+#include SL_INCLUDE_FREERTOS      // IWYU pragma: keep — FreeRTOS 要求本头先于其他 FreeRTOS 头出现
+#include SL_INCLUDE_FREERTOS_TASK
 #include "sl_motor_dji.h"
 
 int16_t sl_motor_dji_get_speed_threadsafe(sl_motor_dji_t *motor) {
