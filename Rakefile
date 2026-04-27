@@ -132,6 +132,13 @@ task lint: %i[check_clang_tidy compile_db] do
   sh CLANG_TIDY, '-p', 'build/artifacts', *source_files
 end
 
+namespace :lint do
+  desc 'clang-tidy --fix 自动修复（修改文件；遇编译错误的 TU 跳过该 TU 的 fix）'
+  task fix: %i[check_clang_tidy compile_db] do
+    sh CLANG_TIDY, '--fix', '-p', 'build/artifacts', *source_files
+  end
+end
+
 desc 'CI 测试矩阵：pure / rtos+hal_f4 / rtos+dsp+hal_h7 / all_on'
 task test: :check_ceedling do
   TEST_MATRIX.each do |mixins|

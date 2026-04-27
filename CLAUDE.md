@@ -220,6 +220,7 @@ float sl_filter_dot(const float *a, const float *b, uint32_t n) {
 | `rake fmt:fix`    | `clang-format -i` 批量应用                                   |
 | `rake compile_db` | 清空旧 DB → `ceedling test:all --mixin all_on` 全量编译      |
 | `rake lint`       | 自动 `compile_db` → `clang-tidy -p build/artifacts ...`      |
+| `rake lint:fix`   | clang-tidy `--fix` 自动修复（修改文件）                      |
 | `rake test`       | CI 测试矩阵（pure / rtos+hal_f4 / rtos+dsp+hal_h7 / all_on） |
 | `rake coverage`   | 清 `build/gcov` → `ceedling gcov:all --mixin all_on`         |
 | `rake ci`         | fmt + lint + test + coverage（CI workflow 调用此项）         |
