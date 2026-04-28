@@ -144,6 +144,11 @@ end
 desc "刷新 #{COMPILE_DB}（清空旧 DB 后用 --mixin #{COMPLETE_MIXIN} 全量编译）"
 task compile_db: :check_ceedling do
   FileUtils.rm_f COMPILE_DB
+  # 同 :test 任务：ceedling 1.0 切 mixin 时不重生 build/test/preprocess/includes/*.yml，
+  # 上一次 mixin 留下的预处理缓存会让本次 ceedling 跳过 mock 生成（如 pure 跑完
+  # 后 SL_USE_HAL=0 视图下没记录 mock 依赖），随后 :use_test_preprocessor 全量
+  # 预处理就报缺 mock_*.h。强制干掉缓存。
+  FileUtils.rm_rf 'build/test'
   ceedling 'test:all', '--mixin', COMPLETE_MIXIN
 end
 
@@ -176,5 +181,8 @@ desc "覆盖率：ceedling gcov:all --mixin #{COMPLETE_MIXIN}"
 task coverage: :check_ceedling do
   # 清掉旧 .gcda 防止 libgcov "overwriting profile data with a different checksum"
   FileUtils.rm_rf 'build/gcov'
+  # 同 :test / :compile_db：gcov 仍读 build/test/preprocess/includes/*.yml，
+  # 上一 mixin 留下的缓存会让本次跳过 mock 生成。强制干掉缓存。
+  FileUtils.rm_rf 'build/test'
   ceedling 'gcov:all', '--mixin', COMPLETE_MIXIN
 end

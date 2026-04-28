@@ -1,7 +1,14 @@
 #include "tim.h"
+
+#include "../../config/internal.h"
 #if SL_USE_HAL // 仅当启用 HAL 时才编译本文件
 
+    #include <stddef.h> // NULL
+    #include <stdint.h> // uint32_t
+
     #include "misc.h"
+
+    #include SL_INCLUDE_HAL
 
 uint32_t sl_hal_tim_get_clock_freq_hz(const TIM_TypeDef *tim) {
     SL_ASSERT(IS_TIM_INSTANCE(tim));

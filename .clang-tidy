@@ -14,7 +14,8 @@ Checks: >
   -readability-identifier-length,
   -readability-magic-numbers,
   -readability-uppercase-literal-suffix,
-  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -misc-include-cleaner
 
 # Disable 理由：
 #   bugprone-easily-swappable-parameters: 控制器/滤波器接口天然多 float 形参，无法避免
@@ -26,6 +27,13 @@ Checks: >
 #   clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling:
 #                                         memset/memcpy/strcpy 在嵌入式中无法避免，
 #                                         不强制 *_s 变体
+#   misc-include-cleaner:                 把符号溯源到声明所在的 vendor 子头
+#                                         （TIM_TypeDef→stm32f407xx.h 等），不识别
+#                                         没有 IWYU pragma 的 umbrella 头。本仓库
+#                                         按设计经 SL_INCLUDE_HAL umbrella 引入 HAL，
+#                                         业务方借此自由切换 F4/H7；放任本检查会迫使
+#                                         库代码直接 include vendor 子头，破坏 umbrella
+#                                         抽象。无法既保留设计又通过此检查，整体关掉。
 
 WarningsAsErrors: '*'
 HeaderFilterRegex: '^src/.*'
