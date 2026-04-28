@@ -2,6 +2,12 @@
 # all_on：所有 SL_USE_* 全开。目的是「语法兜底」——让所有 #if 分支都被
 # 编译到，避免 case 1 / case 2 文件中的代码偷偷 bit-rot。不必对应真实业务
 # 配置。CI 必跑。HAL 用 F4 默认值。
+#
+# vendor 头按需引入，但 vendor `.c` 大部分含 ARM Cortex-M 内联汇编（cmsis_gcc.h
+# 的 isb/dmb/wfe，以及指针强转），无法在 host 编译——因此 :source: 不挂
+# vendor Src 目录，避免 Ceedling 通过头依赖反推自动拉入这些文件。被测代码
+# 真正用到的 vendor 运行时符号（HAL_RCC_* 等），由 deps/stubs/hal_f4 提供
+# host 端最小桩，测试文件用 TEST_SOURCE_FILE 显式声明依赖。
 :defines:
   :test:
     - SL_USE_HAL_F4=1
@@ -13,5 +19,4 @@
     - +:deps/stm32f4xx-hal-driver-1.8.5/Inc
     - +:deps/stm32f4xx-hal-driver-1.8.5/porting
   :source:
-    - +:deps/cmsis-device-f4-2.6.11/Source
-    - +:deps/stm32f4xx-hal-driver-1.8.5/Src
+    - +:deps/stubs/hal_f4
