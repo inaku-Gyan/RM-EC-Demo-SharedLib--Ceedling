@@ -187,3 +187,45 @@ rake fmt           # 不通过先 rake fmt:fix
 rake test          # 完整测试矩阵
 rake ci            # 想做完整 CI 验证（含 lint + coverage）
 ```
+
+### 7. 发布
+
+发布的唯一入口是 **GitHub Release**。在 GitHub UI 上 Publish 一个 Release 后，[GHA](.github/workflows/release.yml) 自动从 Release 关联的 tag 抽取 `src/` 内容，重写到 `release` 分支。**不要手动 push `release` 分支**——会被下次发布覆盖。
+
+#### Tag 命名规范
+
+Tag 必须是 **以 `v` 开头的 SemVer**（[semver.org](https://semver.org/)）：
+
+```
+v<MAJOR>.<MINOR>.<PATCH>[-<prerelease>][+<build>]
+```
+
+| 形式            | 例                              | 说明                                     |
+| --------------- | ------------------------------- | ---------------------------------------- |
+| 正式版本        | `v1.0.0`、`v2.3.1`              | 给业务方默认追的稳定版                   |
+| 预发布          | `v1.0.0-rc.1`、`v1.0.0-alpha.2` | SemVer 规则下排序在同号正式版**之前**    |
+| 带 build 元数据 | `v1.2.3+build.5`                | 极少用；build 元数据不参与 SemVer 优先级 |
+
+不合法的例子：`1.0.0`（缺 `v`）、`v1.0`（缺 patch）、`v1.0.0.0`（多了一段）、`release-1.0.0`（前缀错）——workflow 会拒绝。
+
+#### 发布步骤
+
+1. 在 `main` 上把要发的 commit 合进去（走正常 PR 流程）。
+2. GitHub → **Releases** → **Draft a new release**：
+   - **Choose a tag**：填新 tag（如 `v1.2.3`），target 选 `main`（GitHub 会顺手建 tag 并打在 `main` HEAD）；或者预先在 `main` 上某个 commit 打好 tag 再选已有 tag。
+   - **Release title / notes**：自由填。
+   - 如果是预发布，勾上 **Set as a pre-release**。
+3. **Publish release**。Actions 里能看到 `Release` workflow 自动跑起来；通过后 `release` 分支已更新。
+
+#### Workflow 校验
+
+发布过程中会逐项校验，任一不过则发布失败、`release` 分支不动：
+
+- **SemVer 格式**：tag 必须匹配上面的规范。
+- **tag 落在 `main` 上**：禁止从 feature 分支或非主线 commit 发布——避免业务方拿到没经过 `main` CI 的代码。
+- **防倒灌**：新 tag 的 SemVer 必须 ≥ `release` 分支上次发布的 tag。例如已发 `v2.0.0` 之后想再发 `v1.5.1` 会被拒（这是设计上的取舍：本仓库不维护旧 major 的 hotfix 线，`release` 分支永远跟随主线最新版本）。
+- 与上次完全相同的 tag 重发**幂等**：内容无变化跳过 push，不会失败。
+
+#### 触发类型
+
+`release` 事件的 `published` type 同时覆盖正式发布和预发布；草稿（draft）和编辑（edit）不会触发。预发布同样会更新 `release` 分支——业务方若想固定在某个稳定版本，应在 submodule 里 pin 具体 tag 而非追 `release` 分支。
