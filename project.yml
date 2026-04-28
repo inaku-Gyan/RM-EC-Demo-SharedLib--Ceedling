@@ -14,7 +14,7 @@
   # optional features. If you don't need them, keep them turned off for performance
   :use_mocks: TRUE
   :use_test_preprocessor: :tests # 让 Ceedling 在扫描测试文件时遵守 #if 守卫（依赖 mixin 注入的功能开关）
-  :use_deep_preprocessor: :none  # options are :none, :mocks, :tests, or :all
+  :use_deep_preprocessor: :mocks # 对 mock 头跑深度预处理；vendor HAL 头堆了大量宏，关掉 CMock 解析不到函数原型
   :use_backtrace: :simple        # options are :none, :simple, or :gdb
   :use_decorators: :auto         # decorate Ceedling's output text. options are :auto, :all, or :none
 
@@ -146,7 +146,9 @@
   # Core conffiguration
   :plugins:                        # What plugins should be used by CMock?
     - :ignore
+    - :ignore_arg                  # 启用 _IgnoreArg_<param>，配合 _ReturnThruPtr 处理输出参数
     - :callback
+    - :return_thru_ptr             # 让 _ReturnThruPtr_<param> 可用，省去为输出指针写 callback
   :verbosity:  2                   # the options being 0 errors only, 1 warnings and errors, 2 normal info, 3 verbose
   :when_no_prototypes:  :warn      # the options being :ignore, :warn, or :erro
 
