@@ -161,6 +161,11 @@ end
 desc 'CI 测试矩阵：pure / rtos+hal_f4 / rtos+dsp+hal_h7 / all_on'
 task test: :check_ceedling do
   TEST_MATRIX.each do |mixins|
+    # 每次切 mixin 前清掉 build/test：ceedling 1.0 在切换 mixin 时不会重生
+    # build/test/preprocess/includes/*.yml，导致上一组 mixin 预处理出来的 vendor
+    # 头被带进新一组的 runner（如 all_on 留下的 stm32f4xx_hal.h 被 pure 复用）。
+    # build/artifacts/compile_commands.json 不在 build/test 下，仍由 compile_db 保留。
+    FileUtils.rm_rf 'build/test'
     args = mixins.flat_map { |m| ['--mixin', m] }
     puts "\n>>> ceedling test:all #{args.join(' ')}"
     ceedling 'test:all', *args
