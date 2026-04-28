@@ -4,8 +4,35 @@ RoboMaster 多个 C 嵌入式项目共用的源码库。
 
 仓库有两个长期分支：
 
-- **`main`**：开发分支。完整仓库，所有改动打到这里。仅有 test 目标，不产出二进制。
-- **`release`**：发布分支。由 GitHub Actions 从 `main` 自动抽取并重组而成——**不要手动 push**。业务项目以 Git Submodule 方式引入此分支。
+- **`main`**：[开发分支](https://github.com/RM-DragoPass-EC-Group/EC-Shared-Lib/tree/main)。完整仓库，所有改动打到这里。仅有 test 目标，不产出二进制。
+- **`release`**：[发布分支](https://github.com/RM-DragoPass-EC-Group/EC-Shared-Lib/tree/release)。由 GitHub Actions 从 `main` 自动抽取并重组而成——**不要手动 push**。业务项目以 Git Submodule 方式引入此分支。
+
+## Table of Contents
+
+- [EC-Shared-Lib](#ec-shared-lib)
+  - [Table of Contents](#table-of-contents)
+  - [使用](#使用)
+    - [0. 添加 submodule](#0-添加-submodule)
+    - [1. 准备一份配置头](#1-准备一份配置头)
+    - [2. 接入构建系统](#2-接入构建系统)
+    - [3. 升级库版本](#3-升级库版本)
+  - [开发](#开发)
+    - [0. 快速开始](#0-快速开始)
+    - [1. 环境要求](#1-环境要求)
+    - [2. 项目结构](#2-项目结构)
+    - [3. Rakefile 命令](#3-rakefile-命令)
+    - [4. IDE / clangd 配置](#4-ide--clangd-配置)
+    - [5. 编码规范](#5-编码规范)
+      - [命名](#命名)
+      - [格式](#格式)
+      - [业务方覆写](#业务方覆写)
+    - [6. 提交前检查清单](#6-提交前检查清单)
+    - [7. 发布](#7-发布)
+      - [Tag 命名规范](#tag-命名规范)
+      - [发布步骤](#发布步骤)
+      - [Workflow 校验](#workflow-校验)
+      - [触发类型](#触发类型)
+
 
 ## 使用
 
@@ -148,7 +175,7 @@ CLAUDE.md                  # 设计约束与详细规范
 
 ### 4. IDE / clangd 配置
 
-新克隆后跑一次 `rake compile_db` 生成 `build/artifacts/compile_commands.json`。VSCode + clangd 的设置已写在 [.vscode/settings.json](.vscode/settings.json)，无需额外配置。切换 mixin 想让 IDE 视角同步时重跑 `rake compile_db`。
+新克隆后跑一次 `rake compile_db` 生成 `compile_commands.json`。VSCode + clangd 的设置已写在 [.vscode/settings.json](.vscode/settings.example.json)，无需额外配置。切换 mixin 想让 IDE 视角同步时重跑 `rake compile_db`。
 
 ### 5. 编码规范
 
