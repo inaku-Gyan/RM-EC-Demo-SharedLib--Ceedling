@@ -19,12 +19,14 @@
  * ============================================================================ */
 
 #ifdef SL_USER_CONFIG
-    #include SL_USER_CONFIG // IWYU pragma: export
+    #include SL_USER_CONFIG
 #endif
 
-#include "sl_config_default.h" // IWYU pragma: export
+#include "sl_config_default.h"
 
 /* 全局 sanity check。 */
 #if SL_USE_HAL && (SL_HAL_VERSION_F4 + SL_HAL_VERSION_H7) != 1
     #error "SL_USE_HAL=1 时必须正好选中一个 SL_HAL_VERSION_* 为 1"
+#elif !SL_USE_HAL && (SL_HAL_VERSION_F4 + SL_HAL_VERSION_H7) != 0
+    #error "SL_USE_HAL=0 时不应选中任何 SL_HAL_VERSION_*"
 #endif
