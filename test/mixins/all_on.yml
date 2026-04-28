@@ -4,10 +4,14 @@
 # 配置。CI 必跑。HAL 用 F4 默认值。
 :defines:
   :test:
-    - SL_USE_FREERTOS=1
-    - SL_USE_HAL=1
-    - SL_HAL_VERSION_F4=1
+    - SL_USE_HAL_F4=1
+    - STM32F407xx
 :paths:
   :include:
-    - +:deps/stubs/freertos
-    - +:deps/stubs/hal_f4
+    - +:deps/CMSIS/Core/Include
+    - +:deps/cmsis-device-f4-2.6.11/Include
+    - +:deps/stm32f4xx-hal-driver-1.8.5/Inc
+    - +:deps/stm32f4xx-hal-driver-1.8.5/porting
+  :source:
+    - +:deps/cmsis-device-f4-2.6.11/Source
+    - +:deps/stm32f4xx-hal-driver-1.8.5/Src

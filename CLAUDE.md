@@ -115,7 +115,6 @@ sl_config_default.h       # 库内默认值，#ifndef 守卫保留业务覆写
 
 - 顶部 `#ifdef SL_USER_CONFIG #include SL_USER_CONFIG #endif`：把业务覆盖头拉进来（如有）。
 - 然后 `#include "sl_config_default.h"`：默认值通过 `#ifndef` 守卫填空业务未覆写的项。
-- 最后放与具体依赖无关的全局 sanity check（如 `SL_USE_HAL=1` 必须恰好选中一个 `SL_HAL_VERSION_*`）。
 - **不**自动 include 任何 vendor 头——库源文件自己用 `#if SL_USE_X #include SL_X_INCLUDE #endif` 按需引入。
 
 **新增任何配置项的硬性要求**：

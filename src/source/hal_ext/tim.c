@@ -1,12 +1,7 @@
-#include "../../config/internal.h" // IWYU pragma: keep — 提供 SL_USE_HAL / SL_HAL_VERSION_F4
-#include "sl_hal_utils.h"
+#include "tim.h"
+#if SL_USE_HAL // 仅当启用 HAL 时才编译本文件
 
-#if SL_USE_HAL && SL_HAL_VERSION_F4
-
-    #include SL_INCLUDE_HAL // IWYU pragma: keep — 提供 HAL TIM/RCC 类型与宏
-
-    #include <stddef.h>
-    #include <stdint.h>
+    #include "misc.h"
 
 uint32_t sl_hal_tim_get_clock_freq_hz(const TIM_TypeDef *tim) {
     SL_ASSERT(IS_TIM_INSTANCE(tim));
@@ -68,6 +63,4 @@ void sl_hal_tim_set_pulse_width_us(TIM_HandleTypeDef *htim, uint32_t channel, fl
     __HAL_TIM_SET_COMPARE(htim, channel, pulse);
 }
 
-#else
-    #error "sl_hal_utils_f4.c 需要 SL_USE_HAL=1 && SL_HAL_VERSION_F4=1"
-#endif
+#endif // SL_USE_HAL

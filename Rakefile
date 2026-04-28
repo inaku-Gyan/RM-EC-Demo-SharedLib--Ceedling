@@ -38,14 +38,7 @@ CLANG_TIDY     = ENV.fetch('CLANG_TIDY')   { pick_tool('clang-tidy-18',   'clang
 SOURCE_GLOBS   = %w[src/**/*.c src/**/*.h test/**/*.c test/**/*.h].freeze
 COMPILE_DB     = 'build/artifacts/compile_commands.json'
 COMPLETE_MIXIN = 'all_on'
-
-# CLAUDE.md 中规定的 CI 测试矩阵（不做全排列）
-TEST_MATRIX = [
-  %w[pure],
-  %w[rtos hal_f4],
-  %w[rtos hal_h7],
-  %w[all_on]
-].freeze
+MIXIN_DIR      = 'test/mixins'
 
 # ---------- 工具版本约束 ----------
 # 用 Gem::Requirement 语法（'~> 18.0' = '>= 18.0, < 19.0'）。
@@ -62,6 +55,14 @@ def source_files
   files = SOURCE_GLOBS.flat_map { |g| Dir.glob(g) }.sort
   abort '未找到源文件（src/ 下没有 .c/.h）' if files.empty?
   files
+end
+
+# 自动发现 test/mixins 下所有 *.yml，按文件名排序作为测试矩阵
+# 每个 mixin 独立跑一次；若需要组合，把组合写进同一个 mixin 文件里
+def discover_mixins
+  files = Dir.glob(File.join(MIXIN_DIR, '*.yml')).sort
+  abort "未发现任何 mixin（#{MIXIN_DIR}/*.yml 为空）" if files.empty?
+  files.map { |f| File.basename(f, '.yml') }
 end
 
 # 调用 ceedling：强制走当前 ruby 解释器，Windows 上避开 .bat shim 寻路问题
@@ -158,17 +159,16 @@ namespace :lint do
   end
 end
 
-desc 'CI 测试矩阵：pure / rtos+hal_f4 / rtos+hal_h7 / all_on'
+desc "CI 测试矩阵：自动发现 #{MIXIN_DIR}/*.yml 并逐个运行"
 task test: :check_ceedling do
-  TEST_MATRIX.each do |mixins|
+  discover_mixins.each do |mixin|
     # 每次切 mixin 前清掉 build/test：ceedling 1.0 在切换 mixin 时不会重生
     # build/test/preprocess/includes/*.yml，导致上一组 mixin 预处理出来的 vendor
     # 头被带进新一组的 runner（如 all_on 留下的 stm32f4xx_hal.h 被 pure 复用）。
     # build/artifacts/compile_commands.json 不在 build/test 下，仍由 compile_db 保留。
     FileUtils.rm_rf 'build/test'
-    args = mixins.flat_map { |m| ['--mixin', m] }
-    puts "\n>>> ceedling test:all #{args.join(' ')}"
-    ceedling 'test:all', *args
+    puts "\n>>> ceedling test:all --mixin #{mixin}"
+    ceedling 'test:all', '--mixin', mixin
   end
 end
 

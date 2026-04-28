@@ -57,8 +57,7 @@ git submodule update --init --recursive
 #pragma once
 
 #define SL_USE_FREERTOS   1
-#define SL_USE_HAL        1
-#define SL_HAL_VERSION_F4 1
+#define SL_USE_HAL_F4 1
 #define SL_INCLUDE_HAL    "stm32f4xx_hal.h"
 ```
 

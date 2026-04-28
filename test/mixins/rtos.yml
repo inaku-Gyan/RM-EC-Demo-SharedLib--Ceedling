@@ -1,9 +1,0 @@
----
-# rtos：启用 FreeRTOS 相关代码路径。挂上 FreeRTOS 桩头的 include 路径，
-# 让 SL_INCLUDE_FREERTOS / SL_INCLUDE_FREERTOS_TASK 能被解析到。
-:defines:
-  :test:
-    - SL_USE_FREERTOS=1
-:paths:
-  :include:
-    - +:deps/stubs/freertos
