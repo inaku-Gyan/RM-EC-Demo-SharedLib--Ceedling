@@ -101,7 +101,8 @@ jobs:
             echo "release 分支无提交，跳过倒灌检查（视为首次发布）"
             exit 0
           fi
-          last_tag=$(printf '%s\n' "$last_subject" | sed -n 's/^Release \(v[^ ]*\).*/\1/p')
+          # 兼容两种历史格式：「Release vX.Y.Z (...)」与「Release `vX.Y.Z` (...)」
+          last_tag=$(printf '%s\n' "$last_subject" | sed -n 's/^Release `\?\(v[^ `]*\)`\?.*/\1/p')
           if [[ -z "$last_tag" ]]; then
             echo "::warning::无法从 release 分支 HEAD 解析上次 tag（'$last_subject'），跳过倒灌检查"
             exit 0
@@ -141,5 +142,7 @@ jobs:
             echo "release 分支已经是该发布内容，跳过 push"
             exit 0
           fi
-          git commit -q -m "Release ${RELEASE_TAG} (from commit ${TAG_SHA})"
+          # tag 与 SHA 用反引号包出 markdown code 风格；双引号串里的反引号需转义防 bash 命令替换
+          short_sha="${TAG_SHA:0:7}"
+          git commit -q -m "Release \`${RELEASE_TAG}\` (from commit \`${short_sha}\`)"
           git push origin "$RELEASE_BRANCH"
