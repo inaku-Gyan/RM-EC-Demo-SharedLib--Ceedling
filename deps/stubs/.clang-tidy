@@ -1,0 +1,11 @@
+# 测试期 vendor 桩头：复刻 STM32 HAL / FreeRTOS / CMSIS-DSP 的既定标识符
+# （TIM_TypeDef、__HAL_TIM_*、xTaskCreate、arm_dot_prod_f32 …），命名不在
+# 我们的控制范围内。在此目录关掉相关检查，避免 IDE 实时诊断噪音。
+# rake lint 走 HeaderFilterRegex: '^src/.*'，桩头本就不在 CI 报告范围。
+---
+InheritParentConfig: true
+Checks: >
+  -readability-identifier-naming,
+  -bugprone-reserved-identifier,
+  -cert-dcl37-c,
+  -cert-dcl51-cpp
