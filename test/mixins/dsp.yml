@@ -1,8 +1,0 @@
----
-# dsp：启用 CMSIS-DSP 加速路径。
-:defines:
-  :test:
-    - SL_USE_ARM_DSP=1
-:paths:
-  :include:
-    - +:deps/stubs/arm_math

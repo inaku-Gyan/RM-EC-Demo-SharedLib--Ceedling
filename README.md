@@ -100,7 +100,7 @@ rake check_tools
 #    执行之后，重启 IDE 或 clangd 就能正确解析所有模块与配置选项了
 rake compile_db
 
-# 5. 跑完整测试矩阵（pure / rtos+hal_f4 / rtos+dsp+hal_h7 / all_on）
+# 5. 跑完整测试矩阵（pure / rtos+hal_f4 / rtos+hal_h7 / all_on）
 rake test
 
 # 6. 想跑完整 CI（fmt + lint + test + coverage）
@@ -142,9 +142,9 @@ src/
     sl_config_default.h    # 用户可调默认值
     internal.h             # 库内部入口
 test/
-  mixins/                  # Ceedling mixins（pure / rtos / dsp / hal_f4 / hal_h7 / all_on）
+  mixins/                  # Ceedling mixins（pure / rtos / hal_f4 / hal_h7 / all_on）
   support/                 # 测试期共享头
-deps/stubs/                # 测试期 vendor 桩头（FreeRTOS / arm_math / hal_*）
+deps/stubs/                # 测试期 vendor 桩头（FreeRTOS / hal_*）
 .github/workflows/         # CI
 .clang-format / .clang-tidy
 project.yml                # Ceedling 主配置
@@ -166,7 +166,7 @@ CLAUDE.md                  # 设计约束与详细规范
 | `rake compile_db`  | 清空旧 DB → `ceedling test:all --mixin all_on` 全量编译刷新 IDE DB                              |
 | `rake lint`        | 自动 `compile_db` → `clang-tidy -p build/artifacts ...` 严格检查                                |
 | `rake lint:fix`    | clang-tidy `--fix` 自动修复（修改文件；编译错误的 TU 跳过）                                     |
-| `rake test`        | CI 测试矩阵（pure / rtos+hal_f4 / rtos+dsp+hal_h7 / all_on）                                    |
+| `rake test`        | CI 测试矩阵（pure / rtos+hal_f4 / rtos+hal_h7 / all_on）                                    |
 | `rake coverage`    | 清 `build/gcov` → `ceedling gcov:all --mixin all_on`，HTML 报告于 `build/artifacts/gcov/gcovr/` |
 | `rake ci`          | fmt + lint + test + coverage，CI workflow 调用此项                                              |
 | `rake clean`       | 删 `build/`                                                                                     |

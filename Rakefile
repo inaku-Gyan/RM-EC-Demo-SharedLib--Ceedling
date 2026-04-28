@@ -43,7 +43,7 @@ COMPLETE_MIXIN = 'all_on'
 TEST_MATRIX = [
   %w[pure],
   %w[rtos hal_f4],
-  %w[rtos dsp hal_h7],
+  %w[rtos hal_h7],
   %w[all_on]
 ].freeze
 
@@ -158,7 +158,7 @@ namespace :lint do
   end
 end
 
-desc 'CI 测试矩阵：pure / rtos+hal_f4 / rtos+dsp+hal_h7 / all_on'
+desc 'CI 测试矩阵：pure / rtos+hal_f4 / rtos+hal_h7 / all_on'
 task test: :check_ceedling do
   TEST_MATRIX.each do |mixins|
     # 每次切 mixin 前清掉 build/test：ceedling 1.0 在切换 mixin 时不会重生

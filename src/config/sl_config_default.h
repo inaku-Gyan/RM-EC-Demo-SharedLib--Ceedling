@@ -35,10 +35,6 @@
     #define SL_USE_FREERTOS 0
 #endif
 
-#ifndef SL_USE_ARM_DSP
-    #define SL_USE_ARM_DSP 0
-#endif
-
 #ifndef SL_USE_HAL
     #define SL_USE_HAL 0
 #endif
@@ -78,12 +74,6 @@
     #endif
 
 #endif // SL_USE_FREERTOS
-
-#if SL_USE_ARM_DSP && !defined(SL_INCLUDE_ARM_MATH)
-    #define SL_INCLUDE_ARM_MATH "arm_math.h"
-#elif !SL_USE_ARM_DSP && defined(SL_INCLUDE_ARM_MATH)
-    #error "SL_USE_ARM_DSP = 0 时不应定义 SL_INCLUDE_ARM_MATH"
-#endif
 
 #if SL_USE_HAL && !defined(SL_INCLUDE_HAL)
     #define SL_INCLUDE_HAL "stm32f4xx_hal.h"

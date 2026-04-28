@@ -3,4 +3,3 @@
 # sl_config_default.h 里所有 SL_USE_* 默认就是 0，本 mixin 只打个标签。
 :defines:
   :test:
-    - SL_PROFILE_PURE=1

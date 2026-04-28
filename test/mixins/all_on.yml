@@ -5,11 +5,9 @@
 :defines:
   :test:
     - SL_USE_FREERTOS=1
-    - SL_USE_ARM_DSP=1
     - SL_USE_HAL=1
     - SL_HAL_VERSION_F4=1
 :paths:
   :include:
     - +:deps/stubs/freertos
-    - +:deps/stubs/arm_math
     - +:deps/stubs/hal_f4
