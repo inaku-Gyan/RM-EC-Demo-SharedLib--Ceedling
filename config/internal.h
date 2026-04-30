@@ -19,12 +19,22 @@
  * ============================================================================ */
 
 #ifdef SL_USER_CONFIG
-    #include SL_USER_CONFIG // IWYU pragma: export
+    #include SL_USER_CONFIG
 #endif
 
-#include "sl_config_default.h" // IWYU pragma: export
+#include "sl_config_default.h"
 
 /* 全局 sanity check。 */
-#if SL_USE_HAL && (SL_HAL_VERSION_F4 + SL_HAL_VERSION_H7) != 1
-    #error "SL_USE_HAL=1 时必须正好选中一个 SL_HAL_VERSION_* 为 1"
+
+#ifdef SL_USE_HAL
+    #error "SL_USE_HAL 由 SL_USE_HAL_F4/H7 派生，不允许直接定义"
+#else
+    #define SL_USE_HAL (SL_USE_HAL_F4 + SL_USE_HAL_H7)
+    #if SL_USE_HAL != 0 && SL_USE_HAL != 1
+        #error "SL_USE_HAL_F4/H7 定义冲突"
+    #endif
+#endif
+
+#if SL_USE_HAL == 0
+    #undef SL_INCLUDE_HAL
 #endif
