@@ -1,5 +1,5 @@
 #include "unity.h"
-#include "sl_crc.h"
+#include "crc.h"
 
 #include <stddef.h>
 #include <stdint.h>
