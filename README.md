@@ -12,10 +12,6 @@ RoboMaster 多个 C 嵌入式项目共用的源码库。
 - [EC-Shared-Lib](#ec-shared-lib)
   - [Table of Contents](#table-of-contents)
   - [使用](#使用)
-    - [0. 添加 submodule](#0-添加-submodule)
-    - [1. 准备一份配置头](#1-准备一份配置头)
-    - [2. 接入构建系统](#2-接入构建系统)
-    - [3. 升级库版本](#3-升级库版本)
   - [开发](#开发)
     - [0. 快速开始](#0-快速开始)
     - [1. 环境要求](#1-环境要求)
@@ -36,51 +32,7 @@ RoboMaster 多个 C 嵌入式项目共用的源码库。
 
 ## 使用
 
-### 0. 添加 submodule
-
-业务项目以 Git Submodule 方式引入 `release` 分支：
-
-```bash
-# 在业务仓库根
-git submodule add -b release git@github.com:RM-DragoPass-EC-Group/EC-Shared-Lib.git third_party/EC-Shared-Lib
-git submodule update --init --recursive
-```
-
-`release` 分支只含实际库源码，可直接整体接入业务工程。
-
-### 1. 准备一份配置头
-
-业务工程内放一份配置头，路径/文件名自定（例如 `firmware/my_sl_config.h`），用 `#define` 覆盖需要调整的开关：
-
-```c
-// firmware/my_sl_config.h
-#pragma once
-
-#define SL_USE_FREERTOS   1
-#define SL_USE_HAL_F4 1
-#define SL_INCLUDE_HAL    "stm32f4xx_hal.h"
-```
-
-可覆盖项的完整清单见 [src/config/sl_config_default.h](src/config/sl_config_default.h)（每项注释了语义、单位、合法值）。**不要**修改 submodule 内的任何文件——所有定制都通过这份配置头完成。
-
-### 2. 接入构建系统
-
-无论用什么构建系统，三件事必须做：
-
-1. **加 include path**：`third_party/EC-Shared-Lib/source`
-2. **编译库源码**：`third_party/EC-Shared-Lib/source/**/*.c`。
-3. **传入配置头宏**：`-DSL_USER_CONFIG=\"firmware/my_sl_config.h\"`（双引号必须在编译命令里转义）。
-
-### 3. 升级库版本
-
-```bash
-cd third_party/EC-Shared-Lib
-git fetch
-git checkout release          # 或某个具体 tag / commit
-cd ../..
-git add third_party/EC-Shared-Lib
-git commit -m "bump EC-Shared-Lib"
-```
+关于如何将本库通过 Git Submodule 引入并在业务仓库中进行配置和系统接入，请参阅随源码一起发布到 `release` 分支的使用指南：[**配置与使用文档 (src/README.md)**](src/README.md)。
 
 ## 开发
 
@@ -89,7 +41,7 @@ git commit -m "bump EC-Shared-Lib"
 ```bash
 # 1. 安装依赖工具（见下节「环境要求」）
 # 2. 克隆 main 分支
-git clone git@github.com:RM-DragoPass-EC-Group/EC-Shared-Lib.git
+git clone <url-to-this-repo.git>
 cd EC-Shared-Lib
 
 # 3. 一次性检查工具版本是否符合要求
