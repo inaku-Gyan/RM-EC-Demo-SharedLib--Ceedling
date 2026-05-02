@@ -1,4 +1,4 @@
-#include "sl_crc.h"
+#include "crc.h"
 
 #include "../../config/internal.h"
 
