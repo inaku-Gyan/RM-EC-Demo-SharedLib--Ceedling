@@ -39,11 +39,8 @@ RoboMaster 多个 C 嵌入式项目共用的源码库。
 ### 0. 快速开始
 
 ```bash
-# 1. 安装依赖工具（见下节「环境要求」）
-# 2. 克隆 main 分支
-git clone <url-to-this-repo.git>
-cd EC-Shared-Lib
-
+# 1. 克隆 main 分支，并进入项目根目录
+# 2. 安装依赖工具（见下节「环境要求」）
 # 3. 一次性检查工具版本是否符合要求
 rake check_tools
 
@@ -51,11 +48,17 @@ rake check_tools
 #    执行之后，重启 IDE 或 clangd 就能正确解析所有模块与配置选项了
 rake compile_db
 
-# 5. 跑完整测试矩阵（pure / rtos+hal_f4 / rtos+hal_h7 / all_on）
+# 5. 配置 VS Code 本地项目设置
+cp ./.vscode/settings.example.json ./.vscode/settings.json
+
+# 6. 跑完整测试矩阵
 rake test
 
-# 6. 想跑完整 CI（fmt + lint + test + coverage）
+# 7. 想跑完整 CI（fmt + lint + test + coverage）
 rake ci
+
+# 8. 了解其他可用命令
+rake -T
 ```
 
 ### 1. 环境要求
